@@ -1,0 +1,15 @@
+ion-refresher {
+    z-index: 10;
+}
+
+#post .post-item ion-icon{
+    margin: 12px 16px 12px 0px;
+    height: 18px;
+}
+#post .post-item ion-item-divider{
+    border-bottom: 0;
+}
+#post .post-content {
+    font-size: 14px;
+    margin: 2px 0px 10px 0px;
+}
