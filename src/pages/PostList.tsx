@@ -1,9 +1,8 @@
 import { RefresherEventDetail } from '@ionic/core';
-import { IonAvatar, IonContent, IonHeader, IonIcon, IonItem, IonItemDivider, IonItemGroup, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
-import { heartOutline } from 'ionicons/icons';
+import { IonAvatar, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonItemDivider, IonItemGroup, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
 import React, { useEffect, useState } from 'react';
 import { Post } from '../model/Post';
-import { timestampFormat } from '../util/utils.date';
+import { tsFormat } from '../util/utils.date';
 import './Post.css';
 
 const PostList: React.FC = () => { 
@@ -11,11 +10,18 @@ const PostList: React.FC = () => {
   const [segment, setSegment] = useState('all')
   const [list, setList] = useState<Post[]>([])
 
+  //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
+  /**
+   * 如果想执行只运行一次的 effect（仅在组件挂载和卸载时执行），可以传递一个空数组（[]）作为第二个参数。
+   * 这就告诉 React 你的 effect 不依赖于 props 或 state 中的任何值，所以它永远都不需要重复执行。
+   */
   useEffect(() => {
-    console.log('useEffect');
-    
-    // eslint-disable-next-line
-  }, [])
+    console.log('useEffect init');    
+  },[])
+
+  useEffect(() => {
+    console.log('useEffect', segment);
+  }, [segment]) // 仅在 segment 更改时更新
 
   useIonViewWillEnter(() => {
     console.log('useIonViewWillEnter');
@@ -28,19 +34,22 @@ const PostList: React.FC = () => {
         id:1,
         userId:"1",
         text:'#荣泰健康# 配债成功',
-        date: new Date().getTime()
+        date: new Date().getTime(),
+        isFavorite: false
       },
       {
         id:2,
         userId:"2",
         text:'<a target="_blank" href="http://xueqiu.com/S/SZ001979/162123601">招商蛇口：关于招为投资以集中竞价方式减持股份实施进展的公告 </a>',
-        date: new Date().getTime()-1000*60*60
+        date: new Date().getTime()-1000*60*60,
+        isFavorite: true
       },
       {
         id:3,
         userId:"3",
         text:'成本上升，售价下降，利润怎么办，唉，28的成本怎么办',
-        date: new Date().getTime()-1000*60*100
+        date: new Date().getTime()-1000*60*100,
+        isFavorite: false
       }
     ]
   }
@@ -55,6 +64,11 @@ const PostList: React.FC = () => {
     }, 1000);
   }
   
+  const toggleFavorite = (post : Post) => { 
+    // isFavorite ? removeFavorite(session.id) : addFavorite(session.id);
+    let newList = list.map(item => item.id === post.id ? {...item, isFavorite : !post.isFavorite} : item)
+    setList(newList)
+  };
  
   return (
     <IonPage id='post'>
@@ -85,12 +99,18 @@ const PostList: React.FC = () => {
                     <IonAvatar slot="start">
                       <img src="http://xavatar.imedao.com/community/20145/1402578363291-1402578413963.jpg!180x180.png" alt=""/>
                     </IonAvatar>
-                      <div>
-                        <IonLabel>{post.userId}</IonLabel>
-                        <IonLabel>{timestampFormat(post.date)}</IonLabel>
-                      </div>
-                      <IonIcon slot="end" icon={heartOutline}/>
-                
+                    <div>
+                      <IonLabel>{post.userId}</IonLabel>
+                      <IonLabel>{tsFormat(post.date)}</IonLabel>
+                    </div>
+                    <IonButtons slot="end">
+                      <IonButton onClick={() => toggleFavorite(post)}>
+                        {post.isFavorite ?
+                          <IonIcon slot="icon-only" src="/assets/icon/favorite-filling.svg"></IonIcon> :
+                          <IonIcon slot="icon-only" src="/assets/icon/favorite.svg"></IonIcon>
+                        }
+                      </IonButton>
+                    </IonButtons>
                   </IonItemDivider>
                   <IonItem>
                     <div className="post-content" dangerouslySetInnerHTML={{__html:post.text}}>

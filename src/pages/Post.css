@@ -1,9 +1,7 @@
 ion-refresher {
     z-index: 10;
 }
-
 #post .post-item ion-icon{
-    margin: 12px 16px 12px 0px;
     height: 18px;
 }
 #post .post-item ion-item-divider{

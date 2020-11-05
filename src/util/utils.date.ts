@@ -1,6 +1,6 @@
 import { format as fnsFormat } from 'date-fns';
 
-export function timestampFormat( timestamp : number ) { 
+export function tsFormat( timestamp : number ) { 
   function zeroize( num : number) { 
     return (String(num).length === 1 ? '0' : '') + num; 
   } 

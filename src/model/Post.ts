@@ -3,5 +3,6 @@ export interface Post {
     userId: string;
     text: string;
     date: number;
-    read?: false;
+    readed?: boolean;
+    isFavorite: boolean;
 }
