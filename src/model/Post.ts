@@ -1,8 +1,9 @@
 export interface Post {
     id: number;
     userId: string;
+    userName?: string;
     text: string;
-    date: number;
-    readed?: boolean;
+    createdAt: number;
+    isRead?: boolean;
     isFavorite: boolean;
 }
