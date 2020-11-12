@@ -1,11 +1,12 @@
-import { RefresherEventDetail } from "@ionic/core";
 import {
+  IonAlert,
   IonAvatar,
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonImg,
   IonItem,
   IonItemDivider,
   IonItemGroup,
@@ -20,15 +21,24 @@ import {
   IonToolbar,
   useIonViewWillEnter
 } from "@ionic/react";
-import React, { useEffect, useState } from "react";
+import _ from "lodash";
+import React, { useEffect, useRef, useState } from "react";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
 import { tsFormat } from "../util/utils.date";
 import "./Post.css";
 
 const PostList: React.FC = () => {
-  const [segment, setSegment] = useState("all");
+  const [segment, setSegment] = useState<string | undefined>("unread");
   const [posts, setPosts] = useState<Post[] | undefined>([]);
+
+  const ionContentRef = useRef<HTMLIonContentElement>(null)
+  const ionRefresherRef = useRef<HTMLIonRefresherElement>(null);
+  const ionSegRef = useRef<HTMLIonSegmentButtonElement>(null)
+  const ionListRef = useRef<HTMLIonListElement>(null)
+
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [showAlert, setShowAlert] = useState(false);
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -37,11 +47,12 @@ const PostList: React.FC = () => {
    */
   useEffect(() => {
     console.log("useEffect init");
+
   }, []);
 
   useEffect(() => {
     console.log("useEffect", segment);
-  }, [segment]); // 仅在 segment 更改时更新
+  }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
 
   useIonViewWillEnter(() => {
     console.log("useIonViewWillEnter");
@@ -52,8 +63,9 @@ const PostList: React.FC = () => {
     const result = await postService.getPost();
 
     if (result.success) {
-      setPosts(await result.data);
+      setPosts(result.data);
     } else {
+      // eslint-disable-next-line
       const mock = [
         {
           id: 1,
@@ -77,19 +89,60 @@ const PostList: React.FC = () => {
           createdAt: new Date().getTime() - 1000 * 60 * 100,
           isFavorite: false,
         },
+        {
+          id: 4,
+          userId: "4",
+          text: "成本上升，售价下降，利润怎么办，唉，28的成本怎么办",
+          createdAt: new Date().getTime() - 1000 * 60 * 100,
+          isFavorite: false,
+        },
+        {
+          id: 5,
+          userId: "4",
+          text: "成本上升，售价下降，利润怎么办，唉，28的成本怎么办",
+          createdAt: new Date().getTime() - 1000 * 60 * 100,
+          isFavorite: false,
+        }
       ];
-      setPosts(mock);
+      // setPosts(mock);
     }
   };
 
-  const doRefresh = (event: CustomEvent<RefresherEventDetail>) => {
-    console.log("Begin async doRefresh");
+  const segmentButtonClick = async () => {
+    ionContentRef.current?.getScrollElement().then((el) => {
+      el.scrollTo({left:0, top:0})
+    })
+    // ionListRef.current?.scrollTo({left:0, top:200})
 
-    setTimeout(() => {
-      // setList(getPostList().concat(list))
-      console.log("Async doRefresh has ended");
-      event.detail.complete();
-    }, 1000);
+    // const scrollEl = await ionContentRef.current?.getScrollElement();
+    // let scrollStyle = await scrollEl!.style;
+
+    // let backgroundContentEl = ionContentRef.current!;
+    // console.log(backgroundContentEl);
+    
+    // const backgroundStyle = backgroundContentEl.style;
+    // scrollStyle.transform = backgroundStyle.transform = ((60 > 0) ? `translateY(40px) translateZ(0px)` : '');
+    // scrollStyle.transitionDuration = backgroundStyle.transitionDuration = "300ms";
+    // scrollStyle.transitionDelay = backgroundStyle.transitionDelay = "300ms";
+    // scrollStyle.overflow = (true ? 'hidden' : '');
+
+    // document.querySelector(".refresher-refreshing")?.setAttribute("style","display:block")
+
+    //ionRefresherRef.current!.complete();
+  }
+
+  const doRefresh = async () => {
+    ionContentRef.current?.scrollToTop()
+
+    const result = await postService.getPost("unread");
+    if (result.success) {
+      const unreadPosts = await result.data
+      setPosts([...unreadPosts, ...posts])
+    } else {
+      setErrorMessage(result.msg)
+      setShowAlert(true)
+    }
+    ionRefresherRef.current!.complete();
   };
 
   const toggleFavorite = (post: Post) => {
@@ -100,6 +153,7 @@ const PostList: React.FC = () => {
         item.id === post.id ? { ...item, isFavorite: !post.isFavorite } : item
       );
     setPosts(newList);
+    postService.setFavorite(post.id, !post.isFavorite)
   };
 
   return (
@@ -110,71 +164,87 @@ const PostList: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <IonSegment
-          value={segment}
-          onIonChange={(e) => setSegment(e.detail.value as string)}
-        >
-          <IonSegmentButton value="all">全部</IonSegmentButton>
-          <IonSegmentButton value="read">已读</IonSegmentButton>
-          <IonSegmentButton value="favorite">收藏</IonSegmentButton>
-        </IonSegment>
-
-        <IonContent>
-          <IonRefresher
-            slot="fixed"
-            onIonRefresh={(e) => {
-              doRefresh(e);
-            }}
+        
+        <IonHeader slot="fixed">
+          <IonSegment
+            value={segment}
+            onIonChange={(e) => setSegment(e.detail.value)}
           >
+            <IonSegmentButton value="unread" ref={ionSegRef} onClick={segmentButtonClick}>全部</IonSegmentButton>
+            <IonSegmentButton value="read">已读</IonSegmentButton>
+            <IonSegmentButton value="favorite">收藏</IonSegmentButton>
+          </IonSegment>
+        </IonHeader>
+        
+        <IonContent ref={ionContentRef} slot="fixed">
+          
+          <IonRefresher
+            slot="fixed"          
+            onIonRefresh={(e) => {
+              doRefresh();
+            }}
+            ref={ionRefresherRef}>
             <IonRefresherContent
               pullingIcon={null}
               refreshingSpinner="bubbles"
             ></IonRefresherContent>
           </IonRefresher>
-          <IonContent>
-            <IonList>
-              {posts &&
-                posts.map((post: Post) => {
-                  return (
-                    <IonItemGroup className="post-item" key={post.id}>
-                      <IonItemDivider>
-                        <IonAvatar slot="start">
-                          <img
-                            src="http://xavatar.imedao.com/community/20145/1402578363291-1402578413963.jpg!180x180.png"
-                            alt=""
-                          />
-                        </IonAvatar>
-                        <div>
-                          <IonLabel>{post.userId}</IonLabel>
-                          <IonLabel>{tsFormat(post.createdAt)}</IonLabel>
-                        </div>
-                        <IonButtons slot="end">
-                          <IonButton onClick={() => toggleFavorite(post)}>
-                            {post.isFavorite ? (
-                              <IonIcon
-                                slot="icon-only"
-                                src="/assets/icon/favorite-filling.svg"
-                              ></IonIcon>
-                            ) : (
-                              <IonIcon
-                                slot="icon-only"
-                                src="/assets/icon/favorite.svg"
-                              ></IonIcon>
-                            )}
-                          </IonButton>
-                        </IonButtons>
-                      </IonItemDivider>
-                      <IonItem>
-                        <div
-                          className="post-content"
-                          dangerouslySetInnerHTML={{ __html: post.text }}
-                        ></div>
-                      </IonItem>
-                    </IonItemGroup>
-                  );
-                })}
-            </IonList>
-          </IonContent>
+   
+          <IonList ref={ionListRef}>
+            {posts &&
+              posts.map((post: Post) => {
+                return (
+                  <IonItemGroup className="item" key={post.id}>
+                    <IonItemDivider>
+                      <IonAvatar slot="start">
+                        <IonImg
+                          src={"http://xavatar.imedao.com/"+post.userAvatar}
+                          alt=""
+                        />
+                      </IonAvatar>
+                      <div>
+                        <IonLabel>
+                          <a className="username" href={"https://xueqiu.com/u/"+post.userId}>{post.userName}</a>
+                        </IonLabel>
+                        <IonLabel className="info">{tsFormat(post.createdAt)}</IonLabel>
+                      </div>
+                      <IonButtons slot="end">
+                        <IonButton onClick={() => toggleFavorite(post)}>
+                          {post.isFavorite ? (
+                            <IonIcon
+                              slot="icon-only"
+                              src="/assets/icon/favorite-filling.svg"
+                            ></IonIcon>
+                          ) : (
+                            <IonIcon
+                              slot="icon-only"
+                              src="/assets/icon/favorite.svg"
+                            ></IonIcon>
+                          )}
+                        </IonButton>
+                      </IonButtons>
+                    </IonItemDivider>
+                    <IonItem className={(post.isRead?"read":"unread")}>
+                      <div
+                        className="content"
+                        dangerouslySetInnerHTML={{ __html: _.replace(post.text,'_blank','') }}
+                      ></div>
+                    </IonItem>
+                  </IonItemGroup>
+                );
+              })}
+          </IonList>
+
+          <IonAlert
+            isOpen={showAlert}
+            onDidDismiss={() => setShowAlert(false)}
+            // cssClass='my-custom-class'
+            header={'错误信息'}
+            subHeader={'Subtitle'}
+            message={errorMessage}
+            buttons={['确认']}
+          />
+
         </IonContent>
       </IonContent>
     </IonPage>

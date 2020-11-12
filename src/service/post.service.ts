@@ -18,6 +18,11 @@ class PostService {
   async getPost(type: string = "") {
     return await fetchJson<Post[]>("/xq/post/" + type);
   }
+
+  async setFavorite(postId: number, isFavorite : boolean) {
+    return await fetchJson("/xq/favorite/" + postId + "/" + (isFavorite?1:0));
+  }
+  
 }
 
 const postService = PostService.getInstance();

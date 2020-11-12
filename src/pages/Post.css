@@ -1,13 +1,20 @@
 ion-refresher {
     z-index: 10;
 }
-#post .post-item ion-icon{
+#post .item ion-icon{
     height: 18px;
 }
-#post .post-item ion-item-divider{
+#post .item ion-item-divider{
     border-bottom: 0;
 }
-#post .post-content {
+#post .item .info{
+    padding-top: 3px;
+    font-size: 11px;
+}
+#post .content {
     font-size: 14px;
     margin: 2px 0px 10px 0px;
+}
+#post .unread {
+    border-left: 3px solid  #fae2e5;
 }

@@ -24,12 +24,12 @@ import '@ionic/react/css/typography.css';
 import { apertureOutline, ellipse, square } from 'ionicons/icons';
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import './App.css';
 import PostList from './pages/PostList';
 import Tab2 from './pages/Tab2';
 import Tab3 from './pages/Tab3';
 /* Theme variables */
 import './theme/variables.css';
-
 
 const App: React.FC = () => (
   <IonApp>
