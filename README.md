@@ -1,5 +1,10 @@
 # stk-app
 
+# ionic
+npm install -g @ionic/cli
+
+ionic serve
+
 # deploy to server
 node .\src\deployer.js
 

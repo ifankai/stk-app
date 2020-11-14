@@ -137,7 +137,7 @@ const PostList: React.FC = () => {
     const result = await postService.getPost("unread");
     if (result.success) {
       const unreadPosts = await result.data
-      setPosts([...unreadPosts, ...posts])
+      setPosts([...unreadPosts, ...posts?.map((item) => {item.isRead = true; return item})])
     } else {
       setErrorMessage(result.msg)
       setShowAlert(true)
@@ -206,7 +206,7 @@ const PostList: React.FC = () => {
                         <IonLabel>
                           <a className="username" href={"https://xueqiu.com/u/"+post.userId}>{post.userName}</a>
                         </IonLabel>
-                        <IonLabel className="info">{tsFormat(post.createdAt)}</IonLabel>
+                        <IonLabel className="info">抓取时间：{tsFormat(post.insertDate)}</IonLabel>
                       </div>
                       <IonButtons slot="end">
                         <IonButton onClick={() => toggleFavorite(post)}>
@@ -229,6 +229,10 @@ const PostList: React.FC = () => {
                         className="content"
                         dangerouslySetInnerHTML={{ __html: _.replace(post.text,'_blank','') }}
                       ></div>
+                    </IonItem>
+                    <IonItem className="footer">
+                      <IonLabel >评论数：{post.replyCount}</IonLabel>
+                      <IonLabel ><a href={"https://xueqiu.com/"+post.userId+"/"+post.id}>雪球发表时间：{tsFormat(post.createdAt)}</a></IonLabel>
                     </IonItem>
                   </IonItemGroup>
                 );

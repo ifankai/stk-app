@@ -1,6 +1,13 @@
 ion-refresher {
     z-index: 10;
 }
+#post .item-group-md {
+    margin-bottom: 4px;    
+}
+#post ion-list {
+    padding-top: 0px; 
+    background-color: #d3d2d2;
+}
 #post .item ion-icon{
     height: 18px;
 }
@@ -16,5 +23,13 @@ ion-refresher {
     margin: 2px 0px 10px 0px;
 }
 #post .unread {
-    border-left: 3px solid  #fae2e5;
+    border-left: 4px solid  #ff9393;
+}
+#post .footer {
+    --min-height: 24px;    
+}
+#post .footer ion-label {
+    margin: 0px;
+    font-size: 11px;
+    color: #999999;
 }

@@ -16,6 +16,6 @@ const production = {
   ...common,
 };
 
-const Config = isDev ? development : production;
+const Config = false ? development : production;
 
 export default Config;
