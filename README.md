@@ -6,6 +6,7 @@ npm install -g @ionic/cli
 ionic serve
 
 # deploy to server
+ionic build
 node .\src\deployer.js
 
 # nginx##
