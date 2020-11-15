@@ -3,6 +3,7 @@ export interface Post {
     text: string;
     createdAt: number;
     replyCount: number;
+    followersCount: number;
     insertDate: number;
     isRead?: boolean;
     isFavorite: boolean;

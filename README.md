@@ -23,7 +23,7 @@ service nginx reload # 重新加载配置，一般是在修改过 nginx 配置�
 ionic integrations enable capacitor
 
 ionic build
-ionic cap add android
+ionic cap add android/npx cap copy
 ionic cap open android
 
-npx cap copy
+

@@ -15,21 +15,29 @@ ion-refresher {
     border-bottom: 0;
 }
 #post .item .info{
-    padding-top: 3px;
+    padding-top: 2px;
     font-size: 11px;
 }
 #post .content {
     font-size: 14px;
     margin: 2px 0px 10px 0px;
 }
+#post .avatar {
+    margin-right: 8px;
+}
 #post .unread {
-    border-left: 4px solid  #ff9393;
+    color:#ff9393;
 }
 #post .footer {
-    --min-height: 24px;    
+    --min-height: 30px;
 }
-#post .footer ion-label {
+#post .username {
+    font-size: 12px;
+    font-weight: 600;
+}
+#post .footer ion-col {
+    white-space: nowrap;
     margin: 0px;
     font-size: 11px;
-    color: #999999;
+    color: #999999;    
 }
