@@ -77,9 +77,9 @@ const PostList: React.FC = () => {
     const result = await postService.getPost('unread');
 
     if (result.success) {
-      setPosts(result.data);
+      setPosts(result.data as Post[]);
     } else {
-      setErrorMessage(result.msg)
+      setErrorMessage(result.data as string)
       setShowAlert(true)
     }
   };
@@ -96,14 +96,14 @@ const PostList: React.FC = () => {
     console.log('doRefresh:',segment)
     const result = await postService.getPost(segment);
     if (result.success) {
-      const newPosts = await result.data
+      const newPosts = await result.data as Post[]
       if(segment === 'unread'){    
         setUnreadPosts([...newPosts, ...unreadPosts?.map((item) => {item.isRead = true; return item})])        
       } else if(segment === 'read' || segment === 'favorite'){
         setPosts(newPosts)
       }
     } else {
-      setErrorMessage(result.msg)
+      setErrorMessage(result.data as string)
       setShowAlert(true)
     }
     ionRefresherRef.current!.complete();
@@ -167,7 +167,7 @@ const PostList: React.FC = () => {
                           <a className="username" href={"https://xueqiu.com/u/"+post.userId}>{post.userName}</a>&nbsp; <span className="info">粉丝：{post.followersCount}</span>
                         </IonLabel>
                         <IonLabel className="info">
-                          {tsFormat(post.insertDate)}抓取 &nbsp;{post.isRead?"":(<span className="unread">未读</span>)}
+                          {tsFormat(post.insertTime)}抓取 &nbsp;{post.isRead?"":(<span className="unread">未读</span>)}
                         </IonLabel>
                       </div>
                       <IonButtons slot="end">
@@ -197,7 +197,7 @@ const PostList: React.FC = () => {
                         <IonGrid className="ion-no-padding footer-grid">
                           <IonRow className="ion-no-padding">
                             <IonCol className="ion-padding-horizontal">评论 {post.replyCount}</IonCol>
-                            <IonCol><a href={"https://xueqiu.com/"+post.userId+"/"+post.id}>{tsFormat(post.createdAt)}发表</a></IonCol>
+                            <IonCol><a href={"https://xueqiu.com/"+post.userId+"/"+post.postId}>{tsFormat(post.createdAt)}发表</a></IonCol>
                           </IonRow>
                         </IonGrid>
                       </IonToolbar>
@@ -212,7 +212,6 @@ const PostList: React.FC = () => {
             onDidDismiss={() => setShowAlert(false)}
             // cssClass='my-custom-class'
             header={'错误信息'}
-            subHeader={'Subtitle'}
             message={errorMessage}
             buttons={['确认']}
           />

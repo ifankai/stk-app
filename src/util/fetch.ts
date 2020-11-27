@@ -4,7 +4,7 @@ import RequestResult from "../model/RequestResult";
 export async function fetchJson<T>(
   url: string,
   opts: RequestInit = {}
-): Promise<RequestResult<T>> {
+): Promise<RequestResult<T | string>> {
   try {
     const optsWithAuthHeaders: RequestInit = {
       ...opts,
@@ -14,7 +14,7 @@ export async function fetchJson<T>(
         ...opts.headers,
       },
     };
-    console.log("fetch url:"+config.apiAddress)
+    console.log("fetch url:"+config.apiAddress + url)
     const response = await fetch(config.apiAddress + url, optsWithAuthHeaders)
       .then(function (response) {
         if (response.ok) {
@@ -22,15 +22,15 @@ export async function fetchJson<T>(
         } else {
           return {
             success: false,
-            msg: "请求失败，状态码为：" + response.status,
-          } as RequestResult<T>;
+            data: "请求失败，状态码为：" + response.status,
+          } as RequestResult<string>;
         }
       })
       .catch(function (error) {
         console.error(error);
         return {
           success: false,
-          msg: error,
+          data: error,
         } as RequestResult<T>;
       });
 

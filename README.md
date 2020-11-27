@@ -3,7 +3,9 @@
 # ionic
 npm install -g @ionic/cli
 
+# development command
 ionic serve
+npm run start-dev
 
 # deploy to server
 ionic build

@@ -16,11 +16,19 @@ class PostService {
   }
 
   async getPost(type: string = "") {
-    return await fetchJson<Post[]>("/xq/post/" + type);
+    const result = await fetchJson<Post[]>("/text/" + type);
+    if (result.success) {
+      const data = result.data as Post[]
+      data?.forEach(item => {
+        item.isRead = item.readDate !== null;
+        item.isFavorite = item.favoriteDate !== null;
+      })
+    }
+    return result
   }
 
-  async setFavorite(postId: number, isFavorite : boolean) {
-    return await fetchJson("/xq/favorite/" + postId + "/" + (isFavorite?1:0));
+  async setFavorite(textId: number, isFavorite : boolean) {
+    return await fetchJson("/text/favorite/" + textId + "/" + (isFavorite?1:0));
   }
   
 }

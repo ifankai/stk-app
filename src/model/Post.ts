@@ -1,13 +1,19 @@
 export interface Post {
-    id: number;    
+    id: number;    //textId
+    postId: number;
+    code: string;
+    title: string;
     text: string;
     createdAt: number;
     replyCount: number;
     followersCount: number;
-    insertDate: number;
-    isRead?: boolean;
-    isFavorite: boolean;
+    insertTime: number;
+    readDate: number;
+    favoriteDate: number;
     userId: string;
     userName?: string;
-    userAvatar: string;    
+    userAvatar: string;   
+    
+    isRead: boolean;
+    isFavorite: boolean;
 }
