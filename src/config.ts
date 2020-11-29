@@ -1,3 +1,4 @@
+console.log(process.env.REACT_APP_TEST)
 // export const isDev: boolean = process.env.NODE_ENV === "development";
 // console.log('env:',process.env.NODE_ENV); //这个值不能手动改变
 

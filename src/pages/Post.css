@@ -18,6 +18,11 @@ ion-refresher {
     padding-top: 2px;
     font-size: 11px;
 }
+#post .title{
+    color: #0861fa;
+    font-weight: 600;
+    white-space: normal;
+}
 #post .content {
     font-size: 14px;
     margin: 2px 0px 10px 0px;

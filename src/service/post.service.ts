@@ -1,3 +1,4 @@
+import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import { fetchJson } from "../util/fetch";
 
@@ -16,12 +17,13 @@ class PostService {
   }
 
   async getPost(type: string = "") {
-    const result = await fetchJson<Post[]>("/text/" + type);
+    const result = await fetchJson<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24));
     if (result.success) {
-      const data = result.data as Post[]
-      data?.forEach(item => {
-        item.isRead = item.readDate !== null;
-        item.isFavorite = item.favoriteDate !== null;
+      const data = result.data as PageRoot<Post>
+      const list = data.list as Post[]
+      list.forEach(item => {
+        item.isRead = item.readDate !== undefined;
+        item.isFavorite = item.favoriteDate !== undefined;
       })
     }
     return result
