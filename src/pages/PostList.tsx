@@ -28,6 +28,7 @@ import {
 } from "@ionic/react";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
+import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
 import { tsFormat } from "../util/utils.date";
@@ -77,7 +78,8 @@ const PostList: React.FC = () => {
     const result = await postService.getPost('unread');
 
     if (result.success) {
-      setPosts(result.data as Post[]);
+      const data = result.data as PageRoot<Post>
+      setPosts(data.list);
     } else {
       setErrorMessage(result.data as string)
       setShowAlert(true)
@@ -96,7 +98,7 @@ const PostList: React.FC = () => {
     console.log('doRefresh:',segment)
     const result = await postService.getPost(segment);
     if (result.success) {
-      const newPosts = await result.data as Post[]
+      const newPosts = await (result.data as PageRoot<Post>).list
       if(segment === 'unread'){    
         setUnreadPosts([...newPosts, ...unreadPosts?.map((item) => {item.isRead = true; return item})])        
       } else if(segment === 'read' || segment === 'favorite'){
@@ -186,7 +188,11 @@ const PostList: React.FC = () => {
                         </IonButton>
                       </IonButtons>
                     </IonItemDivider>
+                    
+                    {post.title && <IonItemDivider><IonLabel slot="start"><h3 className="title">{post.title}</h3></IonLabel></IonItemDivider>}
+                    
                     <IonItem>
+                          
                       <div
                         className="content"
                         dangerouslySetInnerHTML={{ __html: _.replace(post.text,'_blank','') }}

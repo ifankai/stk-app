@@ -28,8 +28,8 @@
   "scripts": {
     "start": "react-scripts start",
     "comments":"https://stackoverflow.com/questions/25112510/how-to-set-environment-variables-from-within-package-json",
-    "start-window": "(for /F \"tokens=*\" %i in (.env) do set %i) && react-scripts start",
-    "start-linux": "export $(cat .env | xargs) && react-scripts start",
+    "start-window": "(for /F \"tokens=*\" %i in (.dev) do set %i) && react-scripts start",
+    "start-linux": "export $(cat .dev | xargs) && react-scripts start",
     "start-dev":"set REACT_APP_IS_DEV=true && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
