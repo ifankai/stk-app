@@ -1,31 +1,39 @@
 # stk-app
 
-# ionic
+## ionic
 npm install -g @ionic/cli
 
-# development command
+## development command
 ionic serve
+
 npm run start-dev
 
-# deploy to server
+## deploy to server
 ionic build
+
 node .\src\deployer.js
 
-# nginx##
+## nginx
 systemctl enable nginx # 设置开机启动
+
 service nginx start # 启动 nginx 服务
+
 service nginx stop # 停止 nginx 服务
+
 service nginx restart # 重启 nginx 服务
+
 service nginx reload # 重新加载配置，一般是在修改过 nginx 配置文件时使用。
 
 /etc/nginx/nginx.conf
 /var/log/nginx/error.log
 
-# andorid
+## andorid
 ionic integrations enable capacitor
 
 ionic build
+
 ionic cap add android/npx cap copy
+
 ionic cap open android
 
 
