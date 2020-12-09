@@ -70,7 +70,7 @@ const PostList: React.FC = () => {
 
   useIonViewWillEnter(() => {
     console.log("useIonViewWillEnter");
-    initPostList();
+    //initPostList();
   });
 
   const initPostList = async () => {
