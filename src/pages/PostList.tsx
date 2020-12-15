@@ -1,45 +1,111 @@
 import {
   IonAlert,
-  IonAvatar,
+
+
+
+
   IonButton,
+
+
+
+
   IonButtons,
-  IonCol,
+
+
+
+
   IonContent,
-  IonFooter,
-  IonGrid,
+
+
   IonHeader,
+
+
+
+
+
+
   IonIcon,
-  IonImg,
+
+
+
+
+
+
   IonItem,
-  IonItemDivider,
-  IonItemGroup,
-  IonLabel,
+
+
+
+
+
+
   IonList,
+
+  IonMenu,
+
+  IonMenuButton,
+
   IonPage,
   IonRefresher,
   IonRefresherContent,
-  IonRow,
+
+
+
+
+
+
+
+  IonSearchbar,
+
+
+
+
+
+
+
   IonSegment,
   IonSegmentButton,
 
+
+
+
+
+
+
+
+
+
+
   IonTitle,
+
+
+
+
+
+
+
+
+
+
+
   IonToolbar,
   useIonViewWillEnter
 } from "@ionic/react";
-import _ from "lodash";
+import { search } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
 import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
-import { tsFormat } from "../util/utils.date";
 import "./Post.css";
+import PostListItem from "./PostListItem";
 
 const PostList: React.FC = () => {
+  const [searchText, setSearchText] = useState<string>();  
+
   const [segment, setSegment] = useState<string | undefined>("unread");
-  const [posts, setPosts] = useState<Post[] | undefined>([]);
+  //const [posts, setPosts] = useState<Post[] | undefined>([]);
   const [unreadPosts, setUnreadPosts] = useState<Post[] | undefined>([]);
-  // const [readPosts, setReadPosts] = useState<Post[] | undefined>([]);
-  // const [favoritePosts, setFavoritePosts] = useState<Post[] | undefined>([]);
+  const [readPosts, setReadPosts] = useState<Post[] | undefined>([]);
+  const [favoritePosts, setFavoritePosts] = useState<Post[] | undefined>([]);
 
   const ionContentRef = useRef<HTMLIonContentElement>(null)
   const ionRefresherRef = useRef<HTMLIonRefresherElement>(null);
@@ -48,6 +114,7 @@ const PostList: React.FC = () => {
 
   const [errorMessage, setErrorMessage] = useState<string>();
   const [showAlert, setShowAlert] = useState(false);
+
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -59,37 +126,58 @@ const PostList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect", segment);
+    console.log("useEffect", segment);    
     doRefresh()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
 
-  useEffect(() => {
-    setPosts(unreadPosts)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unreadPosts]);
+  // useEffect(() => {
+  //   //setPosts(unreadPosts)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [readPosts]);
 
   useIonViewWillEnter(() => {
     console.log("useIonViewWillEnter");
     //initPostList();
   });
 
-  const initPostList = async () => {
-    const result = await postService.getPost('unread');
+  // const initPostList = async () => {
+  //   const result = await postService.getPost('unread');
 
-    if (result.success) {
-      const data = result.data as PageRoot<Post>
-      setPosts(data.list);
-    } else {
-      setErrorMessage(result.data as string)
-      setShowAlert(true)
-    }
-  };
+  //   if (result.success) {
+  //     const data = result.data as PageRoot<Post>
+  //     setPosts(data.list);
+  //   } else {
+  //     setErrorMessage(result.data as string)
+  //     setShowAlert(true)
+  //   }
+  // };
 
   const segmentButtonClick = async () => {
     ionContentRef.current?.getScrollElement().then((el) => {
       el.scrollTo({left:0, top:0})
     })
+  }
+
+  const getPostsBySegment = () : Post[] | undefined => {
+    if(segment === 'unread'){            
+      return unreadPosts
+    } else if(segment === 'read'){
+      return readPosts
+    } else if(segment === 'favorite'){
+      return favoritePosts
+    }
+  }
+
+  const setPostsBySegment = (newPosts : Post[] | undefined) => {
+    //setPosts(newPosts)
+    if(segment === 'unread'){            
+      setUnreadPosts([...newPosts, ...unreadPosts])        
+    } else if(segment === 'read'){
+      setReadPosts([...newPosts])
+    } else if(segment === 'favorite'){
+      setFavoritePosts([...newPosts])
+    }
   }
 
   const doRefresh = async () => {
@@ -99,33 +187,63 @@ const PostList: React.FC = () => {
     const result = await postService.getPost(segment);
     if (result.success) {
       const newPosts = await (result.data as PageRoot<Post>).list
-      if(segment === 'unread'){    
-        setUnreadPosts([...newPosts, ...unreadPosts?.map((item) => {item.isRead = true; return item})])        
-      } else if(segment === 'read' || segment === 'favorite'){
-        setPosts(newPosts)
-      }
+      setPostsBySegment(newPosts)
     } else {
       setErrorMessage(result.data as string)
       setShowAlert(true)
     }
+
     ionRefresherRef.current!.complete();
   };
 
   const toggleFavorite = (post: Post) => {
-    let newList =
-      posts &&
-      posts.map((item) =>
-        item.id === post.id ? { ...item, isFavorite: !post.isFavorite } : item
-      );
-    setPosts(newList);
-    postService.setFavorite(post.id, !post.isFavorite)
+    let posts = getPostsBySegment()
+    console.log(posts)
+    posts && posts.forEach(e => {
+      if(e.id === post.id) {
+        e.isFavorite = !e.isFavorite
+      }
+    })
+    console.log(posts)
+    setPostsBySegment(posts)
+    postService.setFavorite(post.id, post.isFavorite)
   };
+
+  const doSearch = () => {
+    postService.doSearch(searchText)
+  }
 
   return (
     <IonPage id="post">
+
+        <IonMenu side="start" contentId="post" type="overlay">
+          <IonHeader>
+            <IonToolbar color="primary">
+              <IonTitle>Start Menu</IonTitle>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <IonList>
+              <IonItem>Menu Item</IonItem>
+              <IonItem>Menu Item</IonItem>
+            </IonList>
+          </IonContent>
+        </IonMenu>
+
       <IonHeader translucent={true}>
         <IonToolbar>
-          <IonTitle>帖子</IonTitle>
+          <IonButtons slot="start">
+              <IonMenuButton />
+            </IonButtons>
+          
+          <IonSearchbar value={searchText} onIonChange={(e: CustomEvent) => setSearchText(e.detail.value)} placeholder="查询" enterkeyhint="search"></IonSearchbar>
+        
+          <IonButtons slot="end">
+            <IonButton onClick={doSearch}>
+              <IonIcon slot="icon-only" icon={search}></IonIcon>
+            </IonButton>         
+          </IonButtons>
+          
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -153,64 +271,18 @@ const PostList: React.FC = () => {
           </IonRefresher>
    
           <IonList ref={ionListRef}>
-            {posts &&
-              posts.map((post: Post) => {
-                return (
-                  <IonItemGroup className="item" key={post.id}>
-                    <IonItemDivider>
-                      <IonAvatar slot="start" className="avatar">
-                        <IonImg
-                          src={"http://xavatar.imedao.com/"+post.userAvatar}
-                          alt=""
-                        />
-                      </IonAvatar>
-                      <div>
-                        <IonLabel>
-                          <a className="username" href={"https://xueqiu.com/u/"+post.userId}>{post.userName}</a>&nbsp; <span className="info">粉丝：{post.followersCount}</span>
-                        </IonLabel>
-                        <IonLabel className="info">
-                          {tsFormat(post.insertTime)}抓取 &nbsp;{post.isRead?"":(<span className="unread">未读</span>)}
-                        </IonLabel>
-                      </div>
-                      <IonButtons slot="end">
-                        <IonButton onClick={() => toggleFavorite(post)}>
-                          {post.isFavorite ? (
-                            <IonIcon
-                              slot="icon-only"
-                              src="/assets/icon/favorite-filling.svg"
-                            ></IonIcon>
-                          ) : (
-                            <IonIcon
-                              slot="icon-only"
-                              src="/assets/icon/favorite.svg"
-                            ></IonIcon>
-                          )}
-                        </IonButton>
-                      </IonButtons>
-                    </IonItemDivider>
-                    
-                    {post.title && <IonItemDivider><IonLabel slot="start"><h3 className="title">{post.title}</h3></IonLabel></IonItemDivider>}
-                    
-                    <IonItem>
-                          
-                      <div
-                        className="content"
-                        dangerouslySetInnerHTML={{ __html: _.replace(post.text,'_blank','') }}
-                      ></div>
-                    </IonItem>
-                    <IonFooter className="ion-no-padding ion-no-border">
-                      <IonToolbar className="footer ion-no-padding">
-                        <IonGrid className="ion-no-padding footer-grid">
-                          <IonRow className="ion-no-padding">
-                            <IonCol className="ion-padding-horizontal">评论 {post.replyCount}</IonCol>
-                            <IonCol><a href={"https://xueqiu.com/"+post.userId+"/"+post.postId}>{tsFormat(post.createdAt)}发表</a></IonCol>
-                          </IonRow>
-                        </IonGrid>
-                      </IonToolbar>
-                    </IonFooter>
-                  </IonItemGroup>
-                );
+            {segment === "unread" && unreadPosts &&
+              unreadPosts.map((post: Post) => {
+                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
               })}
+            {segment === "read" && readPosts &&
+              readPosts.map((post: Post) => {
+                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
+              })}
+            {segment === "favorite" && favoritePosts &&
+              favoritePosts.map((post: Post) => {
+                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
+              })}    
           </IonList>
 
           <IonAlert
