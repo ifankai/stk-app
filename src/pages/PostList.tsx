@@ -1,105 +1,33 @@
 import {
   IonAlert,
-
-
-
-
   IonButton,
-
-
-
-
   IonButtons,
-
-
-
-
   IonContent,
-
-
   IonHeader,
-
-
-
-
-
-
   IonIcon,
-
-
-
-
-
-
   IonItem,
-
-
-
-
-
-
+  IonLabel,
   IonList,
-
   IonMenu,
-
   IonMenuButton,
-
   IonPage,
   IonRefresher,
   IonRefresherContent,
-
-
-
-
-
-
-
-  IonSearchbar,
-
-
-
-
-
-
-
   IonSegment,
   IonSegmentButton,
-
-
-
-
-
-
-
-
-
-
-
   IonTitle,
-
-
-
-
-
-
-
-
-
-
-
   IonToolbar,
   useIonViewWillEnter
 } from "@ionic/react";
 import { search } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
+import "../css/Post.css";
 import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
-import "./Post.css";
 import PostListItem from "./PostListItem";
 
 const PostList: React.FC = () => {
-  const [searchText, setSearchText] = useState<string>();  
 
   const [segment, setSegment] = useState<string | undefined>("unread");
   //const [posts, setPosts] = useState<Post[] | undefined>([]);
@@ -107,14 +35,13 @@ const PostList: React.FC = () => {
   const [readPosts, setReadPosts] = useState<Post[] | undefined>([]);
   const [favoritePosts, setFavoritePosts] = useState<Post[] | undefined>([]);
 
-  const ionContentRef = useRef<HTMLIonContentElement>(null)
+  const ionContentRef = useRef<HTMLIonContentElement>(null);
   const ionRefresherRef = useRef<HTMLIonRefresherElement>(null);
-  const ionSegRef = useRef<HTMLIonSegmentButtonElement>(null)
-  const ionListRef = useRef<HTMLIonListElement>(null)
+  const ionSegRef = useRef<HTMLIonSegmentButtonElement>(null);
+  const ionListRef = useRef<HTMLIonListElement>(null);
 
   const [errorMessage, setErrorMessage] = useState<string>();
   const [showAlert, setShowAlert] = useState(false);
-
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -126,9 +53,9 @@ const PostList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect", segment);    
-    doRefresh()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    console.log("useEffect", segment);
+    doRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
 
   // useEffect(() => {
@@ -155,145 +82,172 @@ const PostList: React.FC = () => {
 
   const segmentButtonClick = async () => {
     ionContentRef.current?.getScrollElement().then((el) => {
-      el.scrollTo({left:0, top:0})
-    })
-  }
+      el.scrollTo({ left: 0, top: 0 });
+    });
+  };
 
-  const getPostsBySegment = () : Post[] | undefined => {
-    if(segment === 'unread'){            
-      return unreadPosts
-    } else if(segment === 'read'){
-      return readPosts
-    } else if(segment === 'favorite'){
-      return favoritePosts
+  const getPostsBySegment = (): Post[] | undefined => {
+    if (segment === "unread") {
+      return unreadPosts;
+    } else if (segment === "read") {
+      return readPosts;
+    } else if (segment === "favorite") {
+      return favoritePosts;
     }
-  }
+  };
 
-  const setPostsBySegment = (newPosts : Post[] | undefined) => {
+  const setPostsBySegment = (newPosts: Post[] | undefined) => {
     //setPosts(newPosts)
-    if(segment === 'unread'){            
-      setUnreadPosts([...newPosts, ...unreadPosts])        
-    } else if(segment === 'read'){
-      setReadPosts([...newPosts])
-    } else if(segment === 'favorite'){
-      setFavoritePosts([...newPosts])
+    if (segment === "unread") {
+      setUnreadPosts([...newPosts, ...unreadPosts]);
+    } else if (segment === "read") {
+      setReadPosts([...newPosts]);
+    } else if (segment === "favorite") {
+      setFavoritePosts([...newPosts]);
     }
-  }
+  };
 
   const doRefresh = async () => {
-    ionContentRef.current?.scrollToTop()
+    ionContentRef.current?.scrollToTop();
 
-    console.log('doRefresh:',segment)
+    console.log("doRefresh:", segment);
     const result = await postService.getPost(segment);
     if (result.success) {
-      const newPosts = await (result.data as PageRoot<Post>).list
-      setPostsBySegment(newPosts)
+      const newPosts = await (result.data as PageRoot<Post>).list;
+      setPostsBySegment(newPosts);
     } else {
-      setErrorMessage(result.data as string)
-      setShowAlert(true)
+      setErrorMessage(result.data as string);
+      setShowAlert(true);
     }
 
     ionRefresherRef.current!.complete();
   };
 
   const toggleFavorite = (post: Post) => {
-    let posts = getPostsBySegment()
-    console.log(posts)
-    posts && posts.forEach(e => {
-      if(e.id === post.id) {
-        e.isFavorite = !e.isFavorite
-      }
-    })
-    console.log(posts)
-    setPostsBySegment(posts)
-    postService.setFavorite(post.id, post.isFavorite)
+    let posts = getPostsBySegment();
+    console.log(posts);
+    posts &&
+      posts.forEach((e) => {
+        if (e.id === post.id) {
+          e.isFavorite = !e.isFavorite;
+        }
+      });
+    console.log(posts);
+    setPostsBySegment(posts);
+    postService.setFavorite(post.id, post.isFavorite);
   };
-
-  const doSearch = () => {
-    postService.doSearch(searchText)
-  }
 
   return (
     <IonPage id="post">
-
-        <IonMenu side="start" contentId="post" type="overlay">
-          <IonHeader>
-            <IonToolbar color="primary">
-              <IonTitle>Start Menu</IonTitle>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent>
-            <IonList>
-              <IonItem>Menu Item</IonItem>
-              <IonItem>Menu Item</IonItem>
-            </IonList>
-          </IonContent>
-        </IonMenu>
+      <IonMenu side="start" contentId="post" type="overlay">
+        <IonHeader>
+          <IonToolbar color="primary">
+            <IonTitle>Start Menu</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <IonList>
+            <IonItem>Menu Item</IonItem>
+            <IonItem>Menu Item</IonItem>
+          </IonList>
+        </IonContent>
+      </IonMenu>
 
       <IonHeader translucent={true}>
-        <IonToolbar>
+        <IonToolbar className="ion-text-center">
           <IonButtons slot="start">
-              <IonMenuButton />
-            </IonButtons>
-          
-          <IonSearchbar value={searchText} onIonChange={(e: CustomEvent) => setSearchText(e.detail.value)} placeholder="查询" enterkeyhint="search"></IonSearchbar>
-        
-          <IonButtons slot="end">
-            <IonButton onClick={doSearch}>
-              <IonIcon slot="icon-only" icon={search}></IonIcon>
-            </IonButton>         
+            <IonMenuButton />
           </IonButtons>
-          
+
+          <IonLabel>帖子</IonLabel>
+
+          <IonButtons slot="end">
+            <IonButton routerLink="/search">
+              <IonIcon slot="icon-only" icon={search}></IonIcon>
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        
         <IonHeader slot="fixed">
-          <IonSegment value={segment} onIonChange={(e) => setSegment(e.detail.value)} >
-            <IonSegmentButton value="unread" ref={ionSegRef} onClick={segmentButtonClick}>全部</IonSegmentButton>
-            <IonSegmentButton value="read" onClick={segmentButtonClick}>已读</IonSegmentButton>
-            <IonSegmentButton value="favorite" onClick={segmentButtonClick}>收藏</IonSegmentButton>
+          <IonSegment
+            value={segment}
+            onIonChange={(e) => setSegment(e.detail.value)}
+          >
+            <IonSegmentButton
+              value="unread"
+              ref={ionSegRef}
+              onClick={segmentButtonClick}
+            >
+              全部
+            </IonSegmentButton>
+            <IonSegmentButton value="read" onClick={segmentButtonClick}>
+              已读
+            </IonSegmentButton>
+            <IonSegmentButton value="favorite" onClick={segmentButtonClick}>
+              收藏
+            </IonSegmentButton>
           </IonSegment>
         </IonHeader>
-        
+
         <IonContent ref={ionContentRef} slot="fixed">
-          
           <IonRefresher
-            slot="fixed"          
+            slot="fixed"
             onIonRefresh={(e) => {
               doRefresh();
             }}
-            ref={ionRefresherRef}>
+            ref={ionRefresherRef}
+          >
             <IonRefresherContent
               pullingIcon={null}
               refreshingSpinner="bubbles"
             ></IonRefresherContent>
           </IonRefresher>
-   
+
           <IonList ref={ionListRef}>
-            {segment === "unread" && unreadPosts &&
+            {segment === "unread" &&
+              unreadPosts &&
               unreadPosts.map((post: Post) => {
-                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
+                return (
+                  <PostListItem
+                    post={post}
+                    toggleFavorite={(post) => toggleFavorite(post)}
+                    key={post.id}
+                  />
+                );
               })}
-            {segment === "read" && readPosts &&
+            {segment === "read" &&
+              readPosts &&
               readPosts.map((post: Post) => {
-                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
+                return (
+                  <PostListItem
+                    post={post}
+                    toggleFavorite={(post) => toggleFavorite(post)}
+                    key={post.id}
+                  />
+                );
               })}
-            {segment === "favorite" && favoritePosts &&
+            {segment === "favorite" &&
+              favoritePosts &&
               favoritePosts.map((post: Post) => {
-                return (<PostListItem post={post} toggleFavorite={(post)=>toggleFavorite(post)} key={post.id}/>);
-              })}    
+                return (
+                  <PostListItem
+                    post={post}
+                    toggleFavorite={(post) => toggleFavorite(post)}
+                    key={post.id}
+                  />
+                );
+              })}
           </IonList>
 
           <IonAlert
             isOpen={showAlert}
             onDidDismiss={() => setShowAlert(false)}
             // cssClass='my-custom-class'
-            header={'错误信息'}
+            header={"错误信息"}
             message={errorMessage}
-            buttons={['确认']}
+            buttons={["确认"]}
           />
-
         </IonContent>
       </IonContent>
     </IonPage>
