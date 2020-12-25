@@ -33,8 +33,8 @@ class PostService {
     return await fetchJson("/text/favorite/" + textId + "/" + (isFavorite?1:0));
   }
 
-  async doSearch(searchText : string | undefined) {
-    return await fetchJson("/text?code=" + searchText);
+  async doSearchByCode(code : string | undefined) {
+    return await fetchJson("/text?code=" + code);
   }
   
 }

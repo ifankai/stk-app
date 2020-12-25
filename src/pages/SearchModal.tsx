@@ -8,12 +8,15 @@ import {
   useIonViewDidEnter
 } from "@ionic/react";
 import React, { CSSProperties, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useHistory } from "react-router";
 import darkLogo from "../assets/google_dark.png";
 import lightLogo from "../assets/google_light.png";
+import { getSearchResult, setSearchPosts } from "../slice/searchSlice";
 
 const SearchModal = () => {
   const [searchText, setSearchText] = useState<string>();
+  const dispatch = useDispatch();
 
   const history = useHistory();
 
@@ -21,6 +24,15 @@ const SearchModal = () => {
   const keyboard = useRef<HTMLIonSearchbarElement>(null);
   // 进入页面后光标focus
   useIonViewDidEnter(() => keyboard.current?.setFocus());
+
+  const search = (text : string) => {
+    console.log('search text:'+text)
+    if (!text.length) {
+      dispatch(setSearchPosts([]))
+    }
+    setSearchText(text)
+    dispatch(getSearchResult(text))
+  }
 
   return (
     <IonPage>
@@ -30,7 +42,7 @@ const SearchModal = () => {
             mode="ios"
             style={searchBarStyle}
             value={searchText}
-            onIonChange={(e: CustomEvent) => setSearchText(e.detail.value)}
+            onIonChange={(e: CustomEvent) => search(e.detail.value)}
             placeholder="查询"
             debounce={750}
             enterkeyhint="search"

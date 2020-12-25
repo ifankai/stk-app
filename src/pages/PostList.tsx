@@ -168,6 +168,7 @@ const PostList: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
+      
       <IonContent fullscreen>
         <IonHeader slot="fixed">
           <IonSegment
