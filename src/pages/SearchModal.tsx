@@ -23,7 +23,7 @@ import lightLogo from "../assets/google_light.png";
 import dictService from "../service/dict.service";
 import { setErrorMessage } from "../slice/commonSlice";
 import { setSegment } from "../slice/postSlice";
-import { getSearchResult, setSearchPosts, setSearchText } from "../slice/searchSlice";
+import { getSearchResult, setSearchResult, setSearchText } from "../slice/searchSlice";
 
 const SearchModal = () => {
 
@@ -43,7 +43,7 @@ const SearchModal = () => {
   const search = (text: string) => {
     console.log("search text:" + text);
     if (!text.length) {
-      dispatch(setSearchPosts([]));
+      dispatch(setSearchResult([]));
     } else {
       dispatch(setSearchText(text));
       dispatch(getSearchResult(text));

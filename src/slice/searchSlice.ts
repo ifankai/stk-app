@@ -1,22 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { PageRoot } from "../model/PageRoot";
-import { Post } from "../model/Post";
-import postService from "../service/post.service";
+import { SearchResult } from "../model/SearchResult";
+import searchService from "../service/search.service";
 import { AppDispatch } from "../store";
 
 export const searchSlice = createSlice({
   name: "search",
   initialState: {
     text: "",
-    posts: [],
+    results: [],
     loading: false,
   },
   reducers: {
     setSearchText:  (state, action) => {
       state.text = action.payload;
     },
-    setSearchPosts: (state, action) => {
-      state.posts = action.payload;
+    setSearchResult: (state, action) => {
+      state.results = action.payload;
       state.loading = false;
     },
     setSearchLoading: (state, action) => {
@@ -33,12 +33,12 @@ export const getSearchResult = (query: string) => async (
   try {
     if (query.length) {
       dispatch(setSearchLoading(true));
-      const result = await postService.doSearchByCode(query)
+      const result = await searchService.getSearchResult(query)
 
       if (result.success) {
-        const posts = await (result.data as PageRoot<Post>).list;
-        console.log(posts)
-        dispatch(setSearchPosts(posts));
+        const searchResults = (result.data as unknown as PageRoot<SearchResult>).list;
+        console.log(searchResults)
+        dispatch(setSearchResult(searchResults));
       } else {
         dispatch(setSearchLoading(false));
         console.log(result.data);
@@ -50,6 +50,5 @@ export const getSearchResult = (query: string) => async (
   }
 };
 
-export const {setSearchText, setSearchPosts, setSearchLoading } = searchSlice.actions;
-
+export const {setSearchText, setSearchResult, setSearchLoading } = searchSlice.actions;
 export default searchSlice.reducer;

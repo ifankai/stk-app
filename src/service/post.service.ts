@@ -32,10 +32,6 @@ class PostService {
   async setFavorite(textId: number, isFavorite : boolean) {
     return await fetchJson("/text/favorite/" + textId + "/" + (isFavorite?1:0));
   }
-
-  async doSearchByCode(code : string | undefined) {
-    return await fetchJson("/text?code=" + code);
-  }
   
 }
 
