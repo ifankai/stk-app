@@ -16,8 +16,8 @@ class PostService {
     return PostService.instance;
   }
 
-  async getPost(type: string = "") {
-    const result = await fetchJson<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24));
+  async getPost(type: string = "", keyword: any = undefined, page: number = 1, perPage:number = 10) {
+    const result = await fetchJson<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24) + (keyword?("&keyword="+keyword):"") + (page?("&page="+page):"") + (perPage?("&perPage="+perPage):""));
     if (result.success) {
       const data = result.data as PageRoot<Post>
       const list = data.list as Post[]

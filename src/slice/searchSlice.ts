@@ -7,17 +7,21 @@ import { AppDispatch } from "../store";
 export const searchSlice = createSlice({
   name: "search",
   initialState: {
+    text: "",
     posts: [],
     loading: false,
   },
   reducers: {
+    setSearchText:  (state, action) => {
+      state.text = action.payload;
+    },
     setSearchPosts: (state, action) => {
       state.posts = action.payload;
       state.loading = false;
     },
     setSearchLoading: (state, action) => {
       state.loading = action.payload;
-    },
+    },    
   },
 });
 
@@ -46,6 +50,6 @@ export const getSearchResult = (query: string) => async (
   }
 };
 
-export const { setSearchPosts, setSearchLoading } = searchSlice.actions;
+export const {setSearchText, setSearchPosts, setSearchLoading } = searchSlice.actions;
 
 export default searchSlice.reducer;

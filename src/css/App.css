@@ -2,3 +2,6 @@ a {
     text-decoration: none;
     border: 0;
   }
+.header-md::after {
+  height: 0px;
+}

@@ -1,10 +1,11 @@
 import {
-  IonAlert,
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItem,
   IonLabel,
   IonList,
@@ -21,27 +22,37 @@ import {
 } from "@ionic/react";
 import { search } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
+import { RootStateOrAny, useDispatch, useSelector } from "react-redux";
 import "../css/Post.css";
 import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
+import { setErrorMessage } from "../slice/commonSlice";
+import { setSegment } from "../slice/postSlice";
 import PostListItem from "./PostListItem";
 
 const PostList: React.FC = () => {
 
-  const [segment, setSegment] = useState<string | undefined>("unread");
-  //const [posts, setPosts] = useState<Post[] | undefined>([]);
-  const [unreadPosts, setUnreadPosts] = useState<Post[] | undefined>([]);
-  const [readPosts, setReadPosts] = useState<Post[] | undefined>([]);
-  const [favoritePosts, setFavoritePosts] = useState<Post[] | undefined>([]);
+  const perPage = 10;
+
+  const segment = useSelector((state: RootStateOrAny) => state.post.segment);
+
+  const [unreadPosts, setUnreadPosts] = useState<Post[]>([]);
+  const [readPosts, setReadPosts] = useState<Post[]>([]);
+  const [favoritePosts, setFavoritePosts] = useState<Post[]>([]);
+  const [searchPosts, setSearchPosts] = useState<Post[]>([]);
+  
+  const [searchPage, setSearchPage] = useState<number>(1);
 
   const ionContentRef = useRef<HTMLIonContentElement>(null);
   const ionRefresherRef = useRef<HTMLIonRefresherElement>(null);
   const ionSegRef = useRef<HTMLIonSegmentButtonElement>(null);
   const ionListRef = useRef<HTMLIonListElement>(null);
+  const ionInfinite = useRef<HTMLIonInfiniteScrollElement>(null);
 
-  const [errorMessage, setErrorMessage] = useState<string>();
-  const [showAlert, setShowAlert] = useState(false);
+  const dispatch = useDispatch();
+
+  const searchText = useSelector((state: RootStateOrAny) => state.search.text);
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -68,35 +79,26 @@ const PostList: React.FC = () => {
     //initPostList();
   });
 
-  // const initPostList = async () => {
-  //   const result = await postService.getPost('unread');
-
-  //   if (result.success) {
-  //     const data = result.data as PageRoot<Post>
-  //     setPosts(data.list);
-  //   } else {
-  //     setErrorMessage(result.data as string)
-  //     setShowAlert(true)
-  //   }
-  // };
-
   const segmentButtonClick = async () => {
     ionContentRef.current?.getScrollElement().then((el) => {
       el.scrollTo({ left: 0, top: 0 });
     });
   };
 
-  const getPostsBySegment = (): Post[] | undefined => {
+  const getPostsBySegment = (): Post[] => {
     if (segment === "unread") {
       return unreadPosts;
     } else if (segment === "read") {
       return readPosts;
     } else if (segment === "favorite") {
       return favoritePosts;
+    } else if (segment === "search") {
+      return searchPosts;
     }
+    return [];
   };
 
-  const setPostsBySegment = (newPosts: Post[] | undefined) => {
+  const setPostsBySegment = (newPosts: Post[]) => {
     //setPosts(newPosts)
     if (segment === "unread") {
       setUnreadPosts([...newPosts, ...unreadPosts]);
@@ -104,20 +106,27 @@ const PostList: React.FC = () => {
       setReadPosts([...newPosts]);
     } else if (segment === "favorite") {
       setFavoritePosts([...newPosts]);
+    } else if (segment === "search") {
+      setSearchPosts([...newPosts]);
     }
   };
 
   const doRefresh = async () => {
     ionContentRef.current?.scrollToTop();
-
+    let keyword = undefined;
+    
     console.log("doRefresh:", segment);
-    const result = await postService.getPost(segment);
+    if (segment === "search") {
+      keyword = searchText
+      setSearchPage(1)
+    }
+    const result = await postService.getPost(segment, keyword, 1, perPage);
+
     if (result.success) {
       const newPosts = await (result.data as PageRoot<Post>).list;
       setPostsBySegment(newPosts);
     } else {
-      setErrorMessage(result.data as string);
-      setShowAlert(true);
+      dispatch(setErrorMessage(result.data as string));
     }
 
     ionRefresherRef.current!.complete();
@@ -136,6 +145,19 @@ const PostList: React.FC = () => {
     setPostsBySegment(posts);
     postService.setFavorite(post.id, post.isFavorite);
   };
+
+
+  const appendData = async () => {
+    ionInfinite.current?.complete()    
+    const result = await postService.getPost(segment, searchText, searchPage, perPage);
+    if(result.success){
+      setSearchPage(searchPage + 1)
+      const newPosts = await (result.data as PageRoot<Post>).list;
+      setSearchPosts([...searchPosts, ...newPosts])
+    } else {
+      dispatch(setErrorMessage(result.data as string));
+    }
+  }
 
   return (
     <IonPage id="post">
@@ -168,12 +190,12 @@ const PostList: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      
+
       <IonContent fullscreen>
         <IonHeader slot="fixed">
           <IonSegment
             value={segment}
-            onIonChange={(e) => setSegment(e.detail.value)}
+            onIonChange={(e) => dispatch(setSegment(e.detail.value))}
           >
             <IonSegmentButton
               value="unread"
@@ -187,6 +209,9 @@ const PostList: React.FC = () => {
             </IonSegmentButton>
             <IonSegmentButton value="favorite" onClick={segmentButtonClick}>
               收藏
+            </IonSegmentButton>
+            <IonSegmentButton value="search" onClick={segmentButtonClick}>
+              搜索
             </IonSegmentButton>
           </IonSegment>
         </IonHeader>
@@ -239,16 +264,27 @@ const PostList: React.FC = () => {
                   />
                 );
               })}
+
+            {segment === "search" &&
+              searchPosts &&
+              searchPosts.map((post: Post) => {
+                return (
+                  <PostListItem
+                    post={post}
+                    toggleFavorite={(post) => toggleFavorite(post)}
+                    key={post.id}
+                  />
+                );
+              })}
           </IonList>
 
-          <IonAlert
-            isOpen={showAlert}
-            onDidDismiss={() => setShowAlert(false)}
-            // cssClass='my-custom-class'
-            header={"错误信息"}
-            message={errorMessage}
-            buttons={["确认"]}
-          />
+          <IonInfiniteScroll ref={ionInfinite} threshold="100px" onIonInfinite={appendData}>
+            <IonInfiniteScrollContent
+              loadingSpinner="bubbles"
+              loadingText="正在加载..."
+            ></IonInfiniteScrollContent>
+          </IonInfiniteScroll>
+          
         </IonContent>
       </IonContent>
     </IonPage>
