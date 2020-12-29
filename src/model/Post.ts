@@ -4,6 +4,7 @@ export interface Post {
     code: string;
     title: string;
     text: string;
+    textDesc: string;
     createdAt: number;
     replyCount: number;
     followersCount: number;

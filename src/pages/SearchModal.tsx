@@ -20,6 +20,8 @@ import { RootStateOrAny, useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import darkLogo from "../assets/google_dark.png";
 import lightLogo from "../assets/google_light.png";
+import { Dict } from "../model/Dict";
+import { SearchResult } from "../model/SearchResult";
 import dictService from "../service/dict.service";
 import { setErrorMessage } from "../slice/commonSlice";
 import { setSegment } from "../slice/postSlice";
@@ -30,8 +32,13 @@ const SearchModal = () => {
   const searchText = useSelector(
     (state: RootStateOrAny) => state.search.text
   );
+  
+  const searchResults : SearchResult[] = useSelector(
+    (state: RootStateOrAny) => state.search.results
+  );
+  
 
-  const [keywords, setKeywords] = useState<[]>();
+  const [keywords, setKeywords] = useState<Dict[]>([]);
   const dispatch = useDispatch();
   const history = useHistory();
 
@@ -43,6 +50,7 @@ const SearchModal = () => {
   const search = (text: string) => {
     console.log("search text:" + text);
     if (!text.length) {
+      dispatch(setSearchText(""));
       dispatch(setSearchResult([]));
     } else {
       dispatch(setSearchText(text));
@@ -61,9 +69,9 @@ const SearchModal = () => {
 
   useIonViewWillEnter(async () => {
     console.log("useIonViewWillEnter");
-    const result = await dictService.getDict(1200);
+    const result = await dictService.getDict(1200);    
     if (result.success) {
-      const dicts = (await result.data) as [];
+      const dicts = await result.data as [];
       setKeywords(dicts);
     } else {
       dispatch(setErrorMessage(result.data as string));
@@ -93,8 +101,7 @@ const SearchModal = () => {
       <IonContent>
         {searchText && (
           <IonItem
-            className="ion-margin-top ion-margin-bottom"
-            button
+            className="ion-no-margin"            
             onClick={() => displayResult("post", searchText)}
             detail={false}
           >
@@ -107,15 +114,24 @@ const SearchModal = () => {
             <IonLabel>{searchText}</IonLabel>
           </IonItem>
         )}
+        {
+          searchResults && searchResults.map((result) => 
+            (
+            <IonItem className="ion-no-margin" key={result.text}>
+              <IonLabel className="ion-no-margin">{result.text}</IonLabel>
+            </IonItem>
+            )
+          )
+        }
         <IonItemDivider>
           <IonLabel>重点关键字：</IonLabel>
         </IonItemDivider>
         {keywords &&
           keywords.map((k) => {
             return (
-              <IonChip style={chipStyle}>
-                <IonLabel onClick={() => displayResult("post", k)}>
-                  {k}
+              <IonChip style={chipStyle} key={k.text}>
+                <IonLabel key={k.text} onClick={() => displayResult("post", k.text)}>
+                  {k.text}
                 </IonLabel>
               </IonChip>
             );

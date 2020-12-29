@@ -23,6 +23,9 @@ ion-refresher {
     font-weight: 600;
     white-space: normal;
 }
+#post ion-item-group {
+    border-bottom: solid 5px #eaecf5;
+}
 #post .content {
     font-size: 14px;
     margin: 2px 0px 10px 0px;

@@ -1,6 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { PageRoot } from "../model/PageRoot";
-import { SearchResult } from "../model/SearchResult";
 import searchService from "../service/search.service";
 import { AppDispatch } from "../store";
 
@@ -35,9 +33,9 @@ export const getSearchResult = (query: string) => async (
       dispatch(setSearchLoading(true));
       const result = await searchService.getSearchResult(query)
 
-      if (result.success) {
-        const searchResults = (result.data as unknown as PageRoot<SearchResult>).list;
-        console.log(searchResults)
+      if (result.success) {        
+        const searchResults = result.data
+        //console.log(searchResults)
         dispatch(setSearchResult(searchResults));
       } else {
         dispatch(setSearchLoading(false));

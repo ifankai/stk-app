@@ -11,6 +11,7 @@ import {
   IonList,
   IonMenu,
   IonMenuButton,
+  IonModal,
   IonPage,
   IonRefresher,
   IonRefresherContent,
@@ -20,39 +21,64 @@ import {
   IonToolbar,
   useIonViewWillEnter
 } from "@ionic/react";
-import { search } from "ionicons/icons";
-import React, { useEffect, useRef, useState } from "react";
+import { chevronBack, closeOutline, search } from "ionicons/icons";
+import _ from "lodash";
+import React, { useEffect, useRef } from "react";
 import { RootStateOrAny, useDispatch, useSelector } from "react-redux";
 import "../css/Post.css";
-import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
 import postService from "../service/post.service";
-import { setErrorMessage } from "../slice/commonSlice";
-import { setSegment } from "../slice/postSlice";
+import {
+  getPost,
+  setPostsBySegment,
+  setSearchPage,
+  setSegment,
+  setShowDetail
+} from "../slice/postSlice";
 import PostListItem from "./PostListItem";
 
 const PostList: React.FC = () => {
-
-  const perPage = 10;
+  const dispatch = useDispatch();
 
   const segment = useSelector((state: RootStateOrAny) => state.post.segment);
 
-  const [unreadPosts, setUnreadPosts] = useState<Post[]>([]);
-  const [readPosts, setReadPosts] = useState<Post[]>([]);
-  const [favoritePosts, setFavoritePosts] = useState<Post[]>([]);
-  const [searchPosts, setSearchPosts] = useState<Post[]>([]);
-  
-  const [searchPage, setSearchPage] = useState<number>(1);
+  //const [unreadPosts, setUnreadPosts] = useState<Post[]>([]);
+  const unreadPosts = useSelector(
+    (state: RootStateOrAny) => state.post.unreadPosts
+  );
+  //const [readPosts, setReadPosts] = useState<Post[]>([]);
+  const readPosts = useSelector(
+    (state: RootStateOrAny) => state.post.readPosts
+  );
+  //const [favoritePosts, setFavoritePosts] = useState<Post[]>([]);
+  const favoritePosts = useSelector(
+    (state: RootStateOrAny) => state.post.favoritePosts
+  );
+  //const [searchPosts, setSearchPosts] = useState<Post[]>([]);
+  const searchPosts = useSelector(
+    (state: RootStateOrAny) => state.post.searchPosts
+  );
+
+  //const [searchPage, setSearchPage] = useState<number>(1);
+  const searchPage = useSelector(
+    (state: RootStateOrAny) => state.post.searchPage
+  );
 
   const ionContentRef = useRef<HTMLIonContentElement>(null);
   const ionRefresherRef = useRef<HTMLIonRefresherElement>(null);
   const ionSegRef = useRef<HTMLIonSegmentButtonElement>(null);
   const ionListRef = useRef<HTMLIonListElement>(null);
   const ionInfinite = useRef<HTMLIonInfiniteScrollElement>(null);
-
-  const dispatch = useDispatch();
+  const ionModalRef = useRef<HTMLIonModalElement>(null);
 
   const searchText = useSelector((state: RootStateOrAny) => state.search.text);
+
+  const showDetail = useSelector(
+    (state: RootStateOrAny) => state.post.showDetail
+  );
+  const postDetail = useSelector(
+    (state: RootStateOrAny) => state.post.postDetail
+  );
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -98,36 +124,41 @@ const PostList: React.FC = () => {
     return [];
   };
 
-  const setPostsBySegment = (newPosts: Post[]) => {
-    //setPosts(newPosts)
-    if (segment === "unread") {
-      setUnreadPosts([...newPosts, ...unreadPosts]);
-    } else if (segment === "read") {
-      setReadPosts([...newPosts]);
-    } else if (segment === "favorite") {
-      setFavoritePosts([...newPosts]);
-    } else if (segment === "search") {
-      setSearchPosts([...newPosts]);
-    }
-  };
+  // const setPostsBySegment = (newPosts: Post[]) => {
+  //   //setPosts(newPosts)
+  //   if (segment === "unread") {
+  //     dispatch(setUnreadPosts([...newPosts, ...unreadPosts]));
+  //   } else if (segment === "read") {
+  //     dispatch(setReadPosts([...newPosts]));
+  //   } else if (segment === "favorite") {
+  //     dispatch(setFavoritePosts([...newPosts]));
+  //   } else if (segment === "search") {
+  //     dispatch(setSearchPosts([...newPosts]));
+  //   }
+  // };
 
   const doRefresh = async () => {
     ionContentRef.current?.scrollToTop();
-    let keyword = undefined;
-    
-    console.log("doRefresh:", segment);
-    if (segment === "search") {
-      keyword = searchText
-      setSearchPage(1)
-    }
-    const result = await postService.getPost(segment, keyword, 1, perPage);
+    //let keyword = undefined;
 
-    if (result.success) {
-      const newPosts = await (result.data as PageRoot<Post>).list;
-      setPostsBySegment(newPosts);
-    } else {
-      dispatch(setErrorMessage(result.data as string));
+    console.log("doRefresh:", segment);
+    // if (segment === "search") {
+    //   keyword = searchText
+    //   setSearchPage(1)
+    // }
+    // const result = await postService.getPost(segment, keyword, 1, perPage);
+
+    // if (result.success) {
+    //   const newPosts = await (result.data as PageRoot<Post>).list;
+    //   setPostsBySegment(newPosts);
+    // } else {
+    //   dispatch(setErrorMessage(result.data as string));
+    // }
+    if (segment === "search") {
+      if(!searchText) return
+      dispatch(setSearchPage(1));
     }
+    dispatch(getPost(segment, 1, searchText));
 
     ionRefresherRef.current!.complete();
   };
@@ -142,22 +173,23 @@ const PostList: React.FC = () => {
         }
       });
     console.log(posts);
-    setPostsBySegment(posts);
+    dispatch(setPostsBySegment(posts));
     postService.setFavorite(post.id, post.isFavorite);
   };
 
-
   const appendData = async () => {
-    ionInfinite.current?.complete()    
-    const result = await postService.getPost(segment, searchText, searchPage, perPage);
-    if(result.success){
-      setSearchPage(searchPage + 1)
-      const newPosts = await (result.data as PageRoot<Post>).list;
-      setSearchPosts([...searchPosts, ...newPosts])
-    } else {
-      dispatch(setErrorMessage(result.data as string));
-    }
-  }
+    ionInfinite.current?.complete();
+
+    let page = searchPage + 1;
+    dispatch(setSearchPage(page));
+    dispatch(getPost(segment, page, searchText));
+
+  };
+
+  const closeDetail = () => {
+    dispatch(setShowDetail(false))
+    if (ionModalRef) ionModalRef.current?.dismiss();
+  };
 
   return (
     <IonPage id="post">
@@ -202,7 +234,7 @@ const PostList: React.FC = () => {
               ref={ionSegRef}
               onClick={segmentButtonClick}
             >
-              全部
+              未读
             </IonSegmentButton>
             <IonSegmentButton value="read" onClick={segmentButtonClick}>
               已读
@@ -278,13 +310,45 @@ const PostList: React.FC = () => {
               })}
           </IonList>
 
-          <IonInfiniteScroll ref={ionInfinite} threshold="100px" onIonInfinite={appendData}>
+          <IonInfiniteScroll
+            ref={ionInfinite}
+            threshold="100px"
+            onIonInfinite={appendData}
+          >
             <IonInfiniteScrollContent
-              loadingSpinner="bubbles"
+              loadingSpinner="bubbles" 
               loadingText="正在加载..."
             ></IonInfiniteScrollContent>
           </IonInfiniteScroll>
-          
+        </IonContent>
+
+        <IonContent>
+          <IonModal ref={ionModalRef} isOpen={showDetail}>
+            <IonHeader translucent={true}>
+              <IonToolbar className="ion-text-center">
+                <IonButtons slot="start">
+                  <IonButton onClick={closeDetail}>
+                    <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
+                  </IonButton>
+                </IonButtons>
+
+                <IonLabel>帖子内容</IonLabel>
+
+                <IonButtons slot="end">
+                  <IonButton onClick={closeDetail}>
+                    <IonIcon slot="icon-only" icon={closeOutline}></IonIcon>
+                  </IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent className="ion-padding">
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: _.replace(postDetail, "_blank", ""),
+                }}
+              ></p>
+            </IonContent>
+          </IonModal>
         </IonContent>
       </IonContent>
     </IonPage>
