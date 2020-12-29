@@ -24,7 +24,7 @@ import { Dict } from "../model/Dict";
 import { SearchResult } from "../model/SearchResult";
 import dictService from "../service/dict.service";
 import { setErrorMessage } from "../slice/commonSlice";
-import { setSegment } from "../slice/postSlice";
+import { getPost, setSegment } from "../slice/postSlice";
 import { getSearchResult, setSearchResult, setSearchText } from "../slice/searchSlice";
 
 const SearchModal = () => {
@@ -64,6 +64,7 @@ const SearchModal = () => {
     if (type === "post") {
       history.goBack();
       dispatch(setSegment("search"));
+      dispatch(getPost("search", 1, searchText))
     }
   };
 

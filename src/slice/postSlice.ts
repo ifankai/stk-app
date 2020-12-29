@@ -67,7 +67,7 @@ export const getPost = (segment: string, page: number, keyword: string) => async
 
     if (result.success) {
       const newPosts = await (result.data as PageRoot<Post>).list;
-      console.log(newPosts)
+      //console.log(newPosts)
       dispatch(setPostsBySegment(newPosts));
     } else {
       dispatch(setErrorMessage(result.data as string));

@@ -91,7 +91,7 @@ const PostList: React.FC = () => {
 
   useEffect(() => {
     console.log("useEffect", segment);
-    doRefresh();
+    //doRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
 
@@ -109,6 +109,10 @@ const PostList: React.FC = () => {
     ionContentRef.current?.getScrollElement().then((el) => {
       el.scrollTo({ left: 0, top: 0 });
     });
+    if(getPostsBySegment().length > 0){
+      return
+    }
+    doRefresh()
   };
 
   const getPostsBySegment = (): Post[] => {
@@ -124,36 +128,11 @@ const PostList: React.FC = () => {
     return [];
   };
 
-  // const setPostsBySegment = (newPosts: Post[]) => {
-  //   //setPosts(newPosts)
-  //   if (segment === "unread") {
-  //     dispatch(setUnreadPosts([...newPosts, ...unreadPosts]));
-  //   } else if (segment === "read") {
-  //     dispatch(setReadPosts([...newPosts]));
-  //   } else if (segment === "favorite") {
-  //     dispatch(setFavoritePosts([...newPosts]));
-  //   } else if (segment === "search") {
-  //     dispatch(setSearchPosts([...newPosts]));
-  //   }
-  // };
 
   const doRefresh = async () => {
     ionContentRef.current?.scrollToTop();
-    //let keyword = undefined;
-
     console.log("doRefresh:", segment);
-    // if (segment === "search") {
-    //   keyword = searchText
-    //   setSearchPage(1)
-    // }
-    // const result = await postService.getPost(segment, keyword, 1, perPage);
 
-    // if (result.success) {
-    //   const newPosts = await (result.data as PageRoot<Post>).list;
-    //   setPostsBySegment(newPosts);
-    // } else {
-    //   dispatch(setErrorMessage(result.data as string));
-    // }
     if (segment === "search") {
       if(!searchText) return
       dispatch(setSearchPage(1));
