@@ -35,7 +35,7 @@ export const getSearchResult = (query: string) => async (
 
       if (result.success) {        
         const searchResults = result.data
-        console.log(searchResults)
+        //console.log(searchResults)
         dispatch(setSearchResult(searchResults));
       } else {
         dispatch(setSearchLoading(false));

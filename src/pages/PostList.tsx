@@ -2,11 +2,19 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+
+
+
+
+
+
+
   IonHeader,
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonItem,
+
   IonLabel,
   IonList,
   IonMenu,
@@ -79,6 +87,9 @@ const PostList: React.FC = () => {
   const postDetail = useSelector(
     (state: RootStateOrAny) => state.post.postDetail
   );
+  const noMoreData = useSelector(
+    (state: RootStateOrAny) => state.post.noMoreData
+  );
 
   //你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount 这三个函数的组合
   /**
@@ -109,10 +120,10 @@ const PostList: React.FC = () => {
     ionContentRef.current?.getScrollElement().then((el) => {
       el.scrollTo({ left: 0, top: 0 });
     });
-    if(getPostsBySegment().length > 0){
-      return
+    if (getPostsBySegment().length > 0) {
+      return;
     }
-    doRefresh()
+    doRefresh();
   };
 
   const getPostsBySegment = (): Post[] => {
@@ -128,13 +139,12 @@ const PostList: React.FC = () => {
     return [];
   };
 
-
   const doRefresh = async () => {
     ionContentRef.current?.scrollToTop();
     console.log("doRefresh:", segment);
 
     if (segment === "search") {
-      if(!searchText) return
+      if (!searchText) return;
       dispatch(setSearchPage(1));
     }
     dispatch(getPost(segment, 1, searchText));
@@ -157,16 +167,16 @@ const PostList: React.FC = () => {
   };
 
   const appendData = async () => {
+    if (noMoreData) return;
     ionInfinite.current?.complete();
 
     let page = searchPage + 1;
     dispatch(setSearchPage(page));
     dispatch(getPost(segment, page, searchText));
-
   };
 
   const closeDetail = () => {
-    dispatch(setShowDetail(false))
+    dispatch(setShowDetail(false));
     if (ionModalRef) ionModalRef.current?.dismiss();
   };
 
@@ -202,7 +212,7 @@ const PostList: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen>
+      <IonContent>
         <IonHeader slot="fixed">
           <IonSegment
             value={segment}
@@ -287,15 +297,21 @@ const PostList: React.FC = () => {
                   />
                 );
               })}
+            
+            {noMoreData && (
+                <div className="no-more-data">---已经到底---</div>
+            )}
+            <div className="post-item-footer"></div>
           </IonList>
 
           <IonInfiniteScroll
             ref={ionInfinite}
             threshold="100px"
             onIonInfinite={appendData}
+            disabled={noMoreData}
           >
             <IonInfiniteScrollContent
-              loadingSpinner="bubbles" 
+              loadingSpinner="bubbles"
               loadingText="正在加载..."
             ></IonInfiniteScrollContent>
           </IonInfiniteScroll>
@@ -330,6 +346,7 @@ const PostList: React.FC = () => {
           </IonModal>
         </IonContent>
       </IonContent>
+
     </IonPage>
   );
 };

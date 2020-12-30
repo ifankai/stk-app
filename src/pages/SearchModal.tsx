@@ -60,7 +60,6 @@ const SearchModal = () => {
 
   const displayResult = (type: string, searchText: string) => {
     //history.push("/tab2")
-    dispatch(setSearchText(searchText));
     if (type === "post") {
       history.goBack();
       dispatch(setSegment("search"));

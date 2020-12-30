@@ -49,3 +49,10 @@ ion-refresher {
     font-size: 11px;
     color: #999999;    
 }
+#post .post-item-footer{
+    height: 100px;
+}
+#post .no-more-data {
+    text-align: center;
+    color: #999999;
+}

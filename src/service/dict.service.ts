@@ -1,5 +1,5 @@
 import RequestResult from "../model/RequestResult";
-import { fetchJson } from "../util/fetch";
+import { get } from "../util/fetch";
 
 class DictService {
     private static instance: DictService;
@@ -16,7 +16,7 @@ class DictService {
     }
 
     async getDict(type: number) : Promise<RequestResult<[] | string>> {
-      return fetchJson("/dict/" + type);
+      return get("/dict/" + type);
     }
 
 }

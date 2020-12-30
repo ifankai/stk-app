@@ -1,6 +1,6 @@
 import { PageRoot } from "../model/PageRoot";
 import { Post } from "../model/Post";
-import { fetchJson } from "../util/fetch";
+import { get } from "../util/fetch";
 
 class PostService {
   private static instance: PostService;
@@ -17,7 +17,7 @@ class PostService {
   }
 
   async getPost(type: string = "", keyword: any = undefined, page: number = 1, perPage:number = 10) {
-    const result = await fetchJson<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24) + (keyword?("&keyword="+keyword):"") + (page?("&page="+page):"") + (perPage?("&perPage="+perPage):""));
+    const result = await get<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24) + (keyword?("&keyword="+keyword):"") + (page?("&page="+page):"") + (perPage?("&perPage="+perPage):""));
     if (result.success) {
       const data = result.data as PageRoot<Post>
       const list = data.list as Post[]
@@ -30,7 +30,7 @@ class PostService {
   }
 
   async setFavorite(textId: number, isFavorite : boolean) {
-    return await fetchJson("/text/favorite/" + textId + "/" + (isFavorite?1:0));
+    return await get("/text/favorite/" + textId + "/" + (isFavorite?1:0));
   }
   
 }

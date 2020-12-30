@@ -1,5 +1,5 @@
 import RequestResult from "../model/RequestResult";
-import { fetchJson } from "../util/fetch";
+import { get } from "../util/fetch";
 
 class SearchService {
   private static instance: SearchService;
@@ -16,7 +16,7 @@ class SearchService {
   }
 
   async getSearchResult(query: string): Promise<RequestResult<[] | string>> {
-    return fetchJson("/search/" + query);
+    return await get("/search/" + query);
   }
 }
 const searchService = SearchService.getInstance();
