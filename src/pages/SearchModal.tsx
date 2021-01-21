@@ -8,6 +8,7 @@ import {
   IonItemDivider,
   IonLabel,
   IonPage,
+  IonRouterLink,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -124,7 +125,7 @@ const SearchModal = () => {
           )
         }
         <IonItemDivider>
-          <IonLabel>重点关键字：</IonLabel>
+          <IonLabel>重点关键字：<IonRouterLink href="/stock/SH600600">600600</IonRouterLink></IonLabel>
         </IonItemDivider>
         {keywords &&
           keywords.map((k) => {
@@ -136,6 +137,7 @@ const SearchModal = () => {
               </IonChip>
             );
           })}
+
       </IonContent>
 
       <IonFooter className="ion-no-border">

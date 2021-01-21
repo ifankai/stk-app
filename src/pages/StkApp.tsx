@@ -1,12 +1,12 @@
 import {
-    IonAlert,
-    IonApp,
-    IonIcon,
-    IonLabel,
-    IonRouterOutlet,
-    IonTabBar,
-    IonTabButton,
-    IonTabs
+  IonAlert,
+  IonApp,
+  IonIcon,
+  IonLabel,
+  IonRouterOutlet,
+  IonTabBar,
+  IonTabButton,
+  IonTabs
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { apertureOutline, ellipse, square } from "ionicons/icons";
@@ -16,6 +16,7 @@ import { Redirect, Route } from "react-router-dom";
 import { setErrorShow } from "../slice/commonSlice";
 import PostList from "./PostList";
 import SearchModal from "./SearchModal";
+import Stock from "./Stock";
 import Tab2 from "./Tab2";
 import Tab3 from "./Tab3";
 
@@ -38,6 +39,7 @@ const StkApp: React.FC = () => {
             <Route path="/tab2" component={Tab2} exact={true} />
             <Route path="/tab3" component={Tab3} />
             <Route path="/search" component={SearchModal} />
+            <Route path="/stock/:code/:tab?" component={Stock} />
             <Route
               path="/"
               render={() => <Redirect to="/post" />}
