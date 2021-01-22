@@ -10,13 +10,13 @@ console.log('isDev:', isDev);
 const common = {};
 
 const development = {
-  apiAddress: "http://localhost:8080/ws",
+  apiAddress: "http://localhost:8088",
   env: process.env.NODE_ENV || "development",
   ...common,
 };
 
 const production = {
-  apiAddress: "http://81.68.255.181:8080/ws",
+  apiAddress: "http://81.68.255.181:8080",
   env: process.env.NODE_ENV || "production",
   ...common,
 };
