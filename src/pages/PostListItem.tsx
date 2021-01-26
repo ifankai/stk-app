@@ -88,7 +88,7 @@ const PostListItem: React.FC<PostListItemProps> = ({
           className="content"
           dangerouslySetInnerHTML={{
             __html:
-              _.replace(post.textDesc, "_blank", ""),
+              _.replace(post.textDesc ? post.textDesc : post.text, "_blank", ""),
           }}
         ></div>
       </IonItem>
@@ -106,7 +106,7 @@ const PostListItem: React.FC<PostListItemProps> = ({
                   雪球
                 </a>
               </IonCol>
-              <IonCol onClick={() => popupText(post)}>{post.text.length >= (post.textDesc.length + 40) && "帖子内容"}</IonCol>
+              <IonCol onClick={() => popupText(post)}>{post.text.length >= (post.textDesc?.length + 40) && "帖子内容"}</IonCol>
             </IonRow>
           </IonGrid>
         </IonToolbar>

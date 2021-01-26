@@ -64,7 +64,7 @@ const SearchModal = () => {
     if (type === "post") {
       history.goBack();
       dispatch(setSegment("search"));
-      dispatch(getPost("search", 1, searchText))
+      dispatch(getPost("search", -1, -1, searchText))
     }
   };
 

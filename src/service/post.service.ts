@@ -16,8 +16,18 @@ class PostService {
     return PostService.instance;
   }
 
-  async getPost(type: string = "", keyword: any = undefined, page: number = 1, perPage:number = 10) {
-    const result = await get<PageRoot<Post>>("/text/" + type + "?createdAtAfter="+ (new Date().getTime() - 1000*60*60*24) + (keyword?("&keyword="+keyword):"") + (page?("&page="+page):"") + (perPage?("&perPage="+perPage):""));
+  async getPost(type: string = "", keyword: any = undefined, 
+                insertTimeBefore: number = -1, insertTimeAfter: number = -1, 
+                pageSize:number = 10) {
+    let url = "/text/" + type + "?pageSize="+pageSize
+    if(insertTimeBefore !== -1){
+      url += "&insertTimeBefore="+insertTimeBefore
+    }
+    if(insertTimeAfter !== -1){
+      url += "&insertTimeAfter="+insertTimeAfter
+    }
+    url += (keyword?("&keyword="+keyword):"")
+    const result = await get<PageRoot<Post>>(url)
     if (result.success) {
       const data = result.data as PageRoot<Post>
       const list = data.list as Post[]

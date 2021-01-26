@@ -8,12 +8,10 @@ import { setErrorMessage } from "./commonSlice";
 export const postSlice = createSlice({
   name: "post",
   initialState: {
-    segment: "unread",
-    unreadPosts: [],
-    readPosts: [],
+    segment: "all",
+    allPosts: [],
     favoritePosts: [],
     searchPosts: [],
-    searchPage: 1,
     showDetail: false,
     postDetail: "",
     noMoreData: false,
@@ -22,11 +20,8 @@ export const postSlice = createSlice({
     setSegment: (state, action) => {
       state.segment = action.payload;
     },
-    setUnreadPosts: (state, action) => {
-      state.unreadPosts = action.payload;
-    },
-    setReadPosts: (state, action) => {
-      state.readPosts = action.payload;
+    setAllPosts: (state, action) => {
+      state.allPosts = action.payload;
     },
     setFavoritePosts: (state, action) => {
       state.favoritePosts = action.payload;
@@ -36,30 +31,35 @@ export const postSlice = createSlice({
     },
     setPostsBySegment: (state, action) => {
       const segment = state.segment;
-      if (segment === "unread") {
-        state.unreadPosts = [
-          ...action.payload,
-          ...state.unreadPosts,
-        ] as never[];
-        //state.unreadPosts = action.payload
-      } else if (segment === "read") {
-        state.readPosts = action.payload;
+      if (segment === "all") {
+        state.allPosts = action.payload;
       } else if (segment === "favorite") {
         state.favoritePosts = action.payload;
       } else if (segment === "search") {
-        if (state.searchPage === 1) {
-          state.searchPosts = action.payload;
-        } else {
-          state.searchPosts = [
-            ...state.searchPosts,
-            ...action.payload,
-          ] as never[];
-        }
+        state.searchPosts = action.payload;;
       }
     },
-    setSearchPage: (state, action) => {
-      state.searchPage = action.payload;
+    setPostsBySegmentAtStart: (state, action) => {
+      const segment = state.segment;
+      if (segment === "all") {
+        state.allPosts = [...action.payload, ...state.allPosts] as never[];
+      } else if (segment === "favorite") {
+        state.favoritePosts = [...action.payload, ...state.favoritePosts] as never[];
+      } else if (segment === "search") {
+        state.searchPosts = [...action.payload, ...state.searchPosts] as never[];
+      }
     },
+    setPostsBySegmentAtEnd: (state, action) => {
+      const segment = state.segment;
+      if (segment === "all") {
+        state.allPosts = [...state.allPosts, ...action.payload] as never[];
+      } else if (segment === "favorite") {
+        state.favoritePosts = [...state.favoritePosts, ...action.payload] as never[];
+      } else if (segment === "search") {
+        state.searchPosts = [...state.searchPosts, ...action.payload] as never[];
+      }
+    },
+
     setShowDetail: (state, action) => {
       state.showDetail = action.payload;
     },
@@ -73,13 +73,36 @@ export const postSlice = createSlice({
 });
 
 // Thunk functions
+export const getPostAfter = (
+  segment: string,
+  insertTimeAfter: number,
+  keyword: string
+) => async (dispatch: AppDispatch) => {
+  dispatch(getPost(segment, -1, insertTimeAfter, keyword));
+};
+
+export const getPostBefore = (
+  segment: string,
+  insertTimeBefore: number,
+  keyword: string
+) => async (dispatch: AppDispatch) => {
+  dispatch(getPost(segment, insertTimeBefore, -1, keyword));
+};
+
 export const getPost = (
   segment: string,
-  page: number,
+  insertTimeBefore: number,
+  insertTimeAfter: number,
   keyword: string
 ) => async (dispatch: AppDispatch) => {
   try {
-    const result = await postService.getPost(segment, keyword, page, 10);
+    const result = await postService.getPost(
+      segment,
+      keyword,
+      insertTimeBefore,
+      insertTimeAfter,
+      10
+    );
 
     if (result.success) {
       const newPosts = await (result.data as PageRoot<Post>).list;
@@ -89,7 +112,13 @@ export const getPost = (
       } else {
         dispatch(setNoMoreData(false));
       }
-      dispatch(setPostsBySegment(newPosts));
+      if(insertTimeBefore === -1 && insertTimeAfter === -1){
+        dispatch(setPostsBySegment(newPosts));
+      }else if(insertTimeBefore === -1 && insertTimeAfter !== -1){
+        dispatch(setPostsBySegmentAtStart(newPosts));
+      }else if(insertTimeBefore !== -1 && insertTimeAfter === -1){
+        dispatch(setPostsBySegmentAtEnd(newPosts));
+      }
     } else {
       dispatch(setErrorMessage(result.data as string));
     }
@@ -100,12 +129,12 @@ export const getPost = (
 
 export const {
   setSegment,
-  setUnreadPosts,
-  setReadPosts,
+  setAllPosts,
   setFavoritePosts,
   setSearchPosts,
   setPostsBySegment,
-  setSearchPage,
+  setPostsBySegmentAtStart,
+  setPostsBySegmentAtEnd,
   setShowDetail,
   setPostDetail,
   setNoMoreData,

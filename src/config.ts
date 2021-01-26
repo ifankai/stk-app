@@ -16,7 +16,7 @@ const development = {
 };
 
 const production = {
-  apiAddress: "http://81.68.255.181:8080",
+  apiAddress: "http://81.68.255.181:8088",
   env: process.env.NODE_ENV || "production",
   ...common,
 };

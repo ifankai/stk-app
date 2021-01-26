@@ -2,19 +2,11 @@ import {
   IonButton,
   IonButtons,
   IonContent,
-
-
-
-
-
-
-
   IonHeader,
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonItem,
-
   IonLabel,
   IonList,
   IonMenu,
@@ -39,9 +31,10 @@ import postService from "../service/post.service";
 import {
   getPost,
   setPostsBySegment,
-  setSearchPage,
   setSegment,
-  setShowDetail
+  setShowDetail,
+  getPostAfter,
+  getPostBefore
 } from "../slice/postSlice";
 import PostListItem from "./PostListItem";
 
@@ -50,14 +43,8 @@ const PostList: React.FC = () => {
 
   const segment = useSelector((state: RootStateOrAny) => state.post.segment);
 
-  //const [unreadPosts, setUnreadPosts] = useState<Post[]>([]);
-  const unreadPosts = useSelector(
-    (state: RootStateOrAny) => state.post.unreadPosts
-  );
-  //const [readPosts, setReadPosts] = useState<Post[]>([]);
-  const readPosts = useSelector(
-    (state: RootStateOrAny) => state.post.readPosts
-  );
+  const allPosts = useSelector((state: RootStateOrAny) => state.post.allPosts);
+
   //const [favoritePosts, setFavoritePosts] = useState<Post[]>([]);
   const favoritePosts = useSelector(
     (state: RootStateOrAny) => state.post.favoritePosts
@@ -65,11 +52,6 @@ const PostList: React.FC = () => {
   //const [searchPosts, setSearchPosts] = useState<Post[]>([]);
   const searchPosts = useSelector(
     (state: RootStateOrAny) => state.post.searchPosts
-  );
-
-  //const [searchPage, setSearchPage] = useState<number>(1);
-  const searchPage = useSelector(
-    (state: RootStateOrAny) => state.post.searchPage
   );
 
   const ionContentRef = useRef<HTMLIonContentElement>(null);
@@ -102,7 +84,7 @@ const PostList: React.FC = () => {
 
   useEffect(() => {
     console.log("useEffect", segment);
-    //doRefresh();
+    doRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
 
@@ -127,10 +109,8 @@ const PostList: React.FC = () => {
   };
 
   const getPostsBySegment = (): Post[] => {
-    if (segment === "unread") {
-      return unreadPosts;
-    } else if (segment === "read") {
-      return readPosts;
+    if (segment === "all") {
+      return allPosts;
     } else if (segment === "favorite") {
       return favoritePosts;
     } else if (segment === "search") {
@@ -143,11 +123,11 @@ const PostList: React.FC = () => {
     ionContentRef.current?.scrollToTop();
     console.log("doRefresh:", segment);
 
-    if (segment === "search") {
-      if (!searchText) return;
-      dispatch(setSearchPage(1));
+    if (segment === "search" && !searchText) {
+      return;
     }
-    dispatch(getPost(segment, 1, searchText));
+    const posts : Post[] = getPostsBySegment()
+    dispatch(getPostAfter(segment, (posts.length>0 ? posts[0].insertTime : -1), searchText));
 
     ionRefresherRef.current!.complete();
   };
@@ -170,9 +150,8 @@ const PostList: React.FC = () => {
     if (noMoreData) return;
     ionInfinite.current?.complete();
 
-    let page = searchPage + 1;
-    dispatch(setSearchPage(page));
-    dispatch(getPost(segment, page, searchText));
+    const posts: Post[] = getPostsBySegment()
+    dispatch(getPostBefore(segment, posts.length>0 ? posts[posts.length-1].insertTime : -1, searchText));
   };
 
   const closeDetail = () => {
@@ -219,14 +198,11 @@ const PostList: React.FC = () => {
             onIonChange={(e) => dispatch(setSegment(e.detail.value))}
           >
             <IonSegmentButton
-              value="unread"
+              value="all"
               ref={ionSegRef}
               onClick={segmentButtonClick}
             >
-              未读
-            </IonSegmentButton>
-            <IonSegmentButton value="read" onClick={segmentButtonClick}>
-              已读
+              全部
             </IonSegmentButton>
             <IonSegmentButton value="favorite" onClick={segmentButtonClick}>
               收藏
@@ -252,9 +228,9 @@ const PostList: React.FC = () => {
           </IonRefresher>
 
           <IonList ref={ionListRef}>
-            {segment === "unread" &&
-              unreadPosts &&
-              unreadPosts.map((post: Post) => {
+            {segment === "all" &&
+              allPosts &&
+              allPosts.map((post: Post) => {
                 return (
                   <PostListItem
                     post={post}
@@ -263,17 +239,7 @@ const PostList: React.FC = () => {
                   />
                 );
               })}
-            {segment === "read" &&
-              readPosts &&
-              readPosts.map((post: Post) => {
-                return (
-                  <PostListItem
-                    post={post}
-                    toggleFavorite={(post) => toggleFavorite(post)}
-                    key={post.id}
-                  />
-                );
-              })}
+
             {segment === "favorite" &&
               favoritePosts &&
               favoritePosts.map((post: Post) => {
@@ -297,10 +263,8 @@ const PostList: React.FC = () => {
                   />
                 );
               })}
-            
-            {noMoreData && (
-                <div className="no-more-data">---已经到底---</div>
-            )}
+
+            {noMoreData && <div className="no-more-data">---已经到底---</div>}
             <div className="post-item-footer"></div>
           </IonList>
 
@@ -346,7 +310,6 @@ const PostList: React.FC = () => {
           </IonModal>
         </IonContent>
       </IonContent>
-
     </IonPage>
   );
 };
