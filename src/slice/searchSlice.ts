@@ -1,4 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { PageRoot } from "../model/PageRoot";
+import { EsDocument } from "../model/SearchResult";
 import searchService from "../service/search.service";
 import { AppDispatch } from "../store";
 
@@ -6,7 +8,7 @@ export const searchSlice = createSlice({
   name: "search",
   initialState: {
     text: "",
-    results: [],
+    results: {} as PageRoot<EsDocument>,
     loading: false,
   },
   reducers: {
@@ -25,7 +27,7 @@ export const searchSlice = createSlice({
 
 
 // Thunk functions
-export const getSearchResult = (query: string) => async (
+export const getSearchTips = (query: string) => async (
   dispatch: AppDispatch
 ) => {
   try {

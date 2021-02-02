@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { StockInfo } from "../model/StockInfo";
+import { StockModel } from "../model/StockModel";
 import stockService from "../service/stock.service";
 import { AppDispatch } from "../store";
 
@@ -9,7 +9,7 @@ export const stockSlice = createSlice({
     code: "",
     name: "",
     loading: false,
-    info: {} as StockInfo,
+    info: {} as StockModel,
   },
   reducers: {
     setStockLoading: (state, action) => {

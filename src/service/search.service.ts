@@ -15,9 +15,10 @@ class SearchService {
     return SearchService.instance;
   }
 
-  async getSearchResult(query: string): Promise<RequestResult<[] | string>> {
-    return await get("/search/" + query);
+  async getSearchResult(query: string, other: string = '', page: number = 1): Promise<RequestResult<[] | string>> {
+    return await get("/search/" + query + "/"+page + (other===''?'':"?"+other));
   }
+
 }
 const searchService = SearchService.getInstance();
 export default searchService;

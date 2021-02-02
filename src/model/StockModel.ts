@@ -1,4 +1,4 @@
-export interface StockInfo {
+export interface StockModel {
     code: string;
     name: string;
     market: number;

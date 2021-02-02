@@ -1,5 +1,5 @@
 import { PageRoot } from "../model/PageRoot";
-import { Post } from "../model/Post";
+import { EsDocument } from "../model/SearchResult";
 import { get } from "../util/fetch";
 
 class PostService {
@@ -17,23 +17,22 @@ class PostService {
   }
 
   async getPost(type: string = "", keyword: any = undefined, 
-                insertTimeBefore: number = -1, insertTimeAfter: number = -1, 
+                idBefore: number = -1, idAfter: number = -1, 
                 pageSize:number = 10) {
     let url = "/text/" + type + "?pageSize="+pageSize
-    if(insertTimeBefore !== -1){
-      url += "&insertTimeBefore="+insertTimeBefore
+    if(idBefore !== -1){
+      url += "&idBefore="+idBefore
     }
-    if(insertTimeAfter !== -1){
-      url += "&insertTimeAfter="+insertTimeAfter
+    if(idAfter !== -1){
+      url += "&idAfter="+idAfter
     }
     url += (keyword?("&keyword="+keyword):"")
-    const result = await get<PageRoot<Post>>(url)
+    const result = await get<PageRoot<EsDocument>>(url)
     if (result.success) {
-      const data = result.data as PageRoot<Post>
-      const list = data.list as Post[]
+      const data = result.data as PageRoot<EsDocument>
+      const list = data.list as EsDocument[]
       list.forEach(item => {
-        item.isRead = item.readDate !== undefined;
-        item.isFavorite = item.favoriteDate !== undefined;
+
       })
     }
     return result

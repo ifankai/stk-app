@@ -23,18 +23,21 @@ import {
 } from "@ionic/react";
 import { chevronBack, closeOutline, search } from "ionicons/icons";
 import _ from "lodash";
-import React, { useEffect, useRef } from "react";
+import React, { CSSProperties, useEffect, useRef } from "react";
 import { RootStateOrAny, useDispatch, useSelector } from "react-redux";
 import "../css/Post.css";
-import { Post } from "../model/Post";
+import { PageRoot } from "../model/PageRoot";
+import { EsDocument } from "../model/SearchResult";
 import postService from "../service/post.service";
 import {
-  getPost,
+  getPostAfter,
+  getPostBefore,
+  getSearchResults,
   setPostsBySegment,
+  setSearchPage,
   setSegment,
   setShowDetail,
-  getPostAfter,
-  getPostBefore
+  setSubSegment
 } from "../slice/postSlice";
 import PostListItem from "./PostListItem";
 
@@ -42,6 +45,9 @@ const PostList: React.FC = () => {
   const dispatch = useDispatch();
 
   const segment = useSelector((state: RootStateOrAny) => state.post.segment);
+  const subSegment = useSelector(
+    (state: RootStateOrAny) => state.post.subSegment
+  );
 
   const allPosts = useSelector((state: RootStateOrAny) => state.post.allPosts);
 
@@ -50,8 +56,11 @@ const PostList: React.FC = () => {
     (state: RootStateOrAny) => state.post.favoritePosts
   );
   //const [searchPosts, setSearchPosts] = useState<Post[]>([]);
-  const searchPosts = useSelector(
-    (state: RootStateOrAny) => state.post.searchPosts
+  const searchResults = useSelector(
+    (state: RootStateOrAny) => state.post.searchResults
+  );
+  const searchPage = useSelector(
+    (state: RootStateOrAny) => state.post.searchPage
   );
 
   const ionContentRef = useRef<HTMLIonContentElement>(null);
@@ -60,6 +69,7 @@ const PostList: React.FC = () => {
   const ionListRef = useRef<HTMLIonListElement>(null);
   const ionInfinite = useRef<HTMLIonInfiniteScrollElement>(null);
   const ionModalRef = useRef<HTMLIonModalElement>(null);
+  const ionMenuRef = useRef<HTMLIonMenuElement>(null);
 
   const searchText = useSelector((state: RootStateOrAny) => state.search.text);
 
@@ -84,9 +94,16 @@ const PostList: React.FC = () => {
 
   useEffect(() => {
     console.log("useEffect", segment);
+    //dispatch(setNoMoreData(false))
     doRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segment]); // 第二个参数表明 仅在 segment 更改时调用这个方法(useEffect)
+
+  useEffect(() => {
+    console.log("useEffect subSegment", subSegment);
+    doRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subSegment]);
 
   // useEffect(() => {
   //   //setPosts(unreadPosts)
@@ -102,56 +119,73 @@ const PostList: React.FC = () => {
     ionContentRef.current?.getScrollElement().then((el) => {
       el.scrollTo({ left: 0, top: 0 });
     });
-    if (getPostsBySegment().length > 0) {
-      return;
-    }
-    doRefresh();
   };
 
-  const getPostsBySegment = (): Post[] => {
+  const getPostsBySegment = (): PageRoot<EsDocument> => {
     if (segment === "all") {
       return allPosts;
     } else if (segment === "favorite") {
       return favoritePosts;
     } else if (segment === "search") {
-      return searchPosts;
+      return searchResults;
     }
-    return [];
+    return {} as PageRoot<EsDocument>;
   };
 
   const doRefresh = async () => {
     ionContentRef.current?.scrollToTop();
     console.log("doRefresh:", segment);
 
-    if (segment === "search" && !searchText) {
-      return;
+    if (segment === "search") {
+      if (!searchText) return;
+      else {
+        dispatch(setSearchPage(1));
+        dispatch(getSearchResults(searchText));
+      }
+    } else {
+      const posts: EsDocument[] = getPostsBySegment().list;
+      dispatch(
+        getPostAfter(
+          segment,
+          posts?.length > 0 ? posts[0].post.id : -1,
+          searchText
+        )
+      );
     }
-    const posts : Post[] = getPostsBySegment()
-    dispatch(getPostAfter(segment, (posts.length>0 ? posts[0].insertTime : -1), searchText));
-
     ionRefresherRef.current!.complete();
   };
 
-  const toggleFavorite = (post: Post) => {
-    let posts = getPostsBySegment();
+  const toggleFavorite = (esDocument: EsDocument) => {
+    let posts = getPostsBySegment().list;
     console.log(posts);
     posts &&
       posts.forEach((e) => {
-        if (e.id === post.id) {
-          e.isFavorite = !e.isFavorite;
+        if (e.post.id === esDocument.post.id) {
+          e.post.isFavorite = !e.post.isFavorite;
         }
       });
     console.log(posts);
     dispatch(setPostsBySegment(posts));
-    postService.setFavorite(post.id, post.isFavorite);
+    postService.setFavorite(esDocument.post.id, esDocument.post.isFavorite);
   };
 
   const appendData = async () => {
     if (noMoreData) return;
     ionInfinite.current?.complete();
 
-    const posts: Post[] = getPostsBySegment()
-    dispatch(getPostBefore(segment, posts.length>0 ? posts[posts.length-1].insertTime : -1, searchText));
+    if (segment === "search") {
+      dispatch(setSearchPage(searchPage + 1));
+      dispatch(getSearchResults(searchText, searchPage + 1));
+    } else {
+      const posts: EsDocument[] = getPostsBySegment().list;
+      dispatch(
+        getPostBefore(
+          segment,
+          posts.length > 0 ? posts[posts.length - 1].post.id : -1,
+          searchText
+        )
+      );
+    }
   };
 
   const closeDetail = () => {
@@ -159,9 +193,20 @@ const PostList: React.FC = () => {
     if (ionModalRef) ionModalRef.current?.dismiss();
   };
 
+  const closeMenu = () => {
+    console.log("menuclose...");
+    ionMenuRef.current?.close();
+  };
+
   return (
     <IonPage id="post">
-      <IonMenu side="start" contentId="post" type="overlay">
+      <IonMenu
+        side="start"
+        contentId="post"
+        type="overlay"
+        ref={ionMenuRef}
+        onClick={closeMenu}
+      >
         <IonHeader>
           <IonToolbar color="primary">
             <IonTitle>Start Menu</IonTitle>
@@ -213,6 +258,24 @@ const PostList: React.FC = () => {
           </IonSegment>
         </IonHeader>
 
+        {segment === "search" && (
+          <IonHeader slot="fixed">
+            <IonSegment
+              style={styleSubSegment}
+              mode="ios"
+              value={subSegment}
+              onIonChange={(e) => dispatch(setSubSegment(e.detail.value))}
+            >
+              <IonSegmentButton value="all">
+                <IonLabel>综合</IonLabel>
+              </IonSegmentButton>
+              <IonSegmentButton value="type=post&subType=300">
+                <IonLabel>雪球公告</IonLabel>
+              </IonSegmentButton>
+            </IonSegment>
+          </IonHeader>
+        )}
+
         <IonContent ref={ionContentRef} slot="fixed">
           <IonRefresher
             slot="fixed"
@@ -229,39 +292,52 @@ const PostList: React.FC = () => {
 
           <IonList ref={ionListRef}>
             {segment === "all" &&
-              allPosts &&
-              allPosts.map((post: Post) => {
+              allPosts.list &&
+              allPosts.list.map((esDocument: EsDocument) => {
                 return (
                   <PostListItem
-                    post={post}
-                    toggleFavorite={(post) => toggleFavorite(post)}
-                    key={post.id}
+                    segment={segment}
+                    esDocument={esDocument}
+                    toggleFavorite={(post) => toggleFavorite(esDocument)}
+                    key={esDocument.post?.id}
                   />
                 );
               })}
 
             {segment === "favorite" &&
-              favoritePosts &&
-              favoritePosts.map((post: Post) => {
+              favoritePosts.list &&
+              favoritePosts.list.map((esDocument: EsDocument) => {
                 return (
                   <PostListItem
-                    post={post}
-                    toggleFavorite={(post) => toggleFavorite(post)}
-                    key={post.id}
+                    segment={segment}
+                    esDocument={esDocument}
+                    toggleFavorite={(post) => toggleFavorite(esDocument)}
+                    key={esDocument.post.id}
                   />
                 );
               })}
 
             {segment === "search" &&
-              searchPosts &&
-              searchPosts.map((post: Post) => {
-                return (
-                  <PostListItem
-                    post={post}
-                    toggleFavorite={(post) => toggleFavorite(post)}
-                    key={post.id}
-                  />
-                );
+              searchResults.list &&
+              searchResults.list.map((esDocument: EsDocument) => {
+                if (esDocument.type === "post") {
+                  return (
+                    <PostListItem
+                      segment={segment}
+                      esDocument={esDocument}
+                      toggleFavorite={(post) => toggleFavorite(esDocument)}
+                      key={esDocument.post.id}
+                    />
+                  );
+                } else if (esDocument.type === "stock") {
+                  //sconst stock = { ...(result.data as Post), ...result };
+                  // return (
+                  //   <StockListItem
+                  //     stock={stock}
+                  //     key={stock.id}
+                  //   />
+                  // );
+                }
               })}
 
             {noMoreData && <div className="no-more-data">---已经到底---</div>}
@@ -281,37 +357,45 @@ const PostList: React.FC = () => {
           </IonInfiniteScroll>
         </IonContent>
 
-        <IonContent>
-          <IonModal ref={ionModalRef} isOpen={showDetail}>
-            <IonHeader translucent={true}>
-              <IonToolbar className="ion-text-center">
-                <IonButtons slot="start">
-                  <IonButton onClick={closeDetail}>
-                    <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
-                  </IonButton>
-                </IonButtons>
+        <IonModal
+          ref={ionModalRef}
+          isOpen={showDetail}
+          onDidDismiss={closeDetail}
+        >
+          <IonHeader>
+            <IonToolbar className="ion-text-center">
+              <IonButtons slot="start">
+                <IonButton onClick={closeDetail}>
+                  <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
+                </IonButton>
+              </IonButtons>
 
-                <IonLabel>帖子内容</IonLabel>
+              <IonLabel>帖子内容</IonLabel>
 
-                <IonButtons slot="end">
-                  <IonButton onClick={closeDetail}>
-                    <IonIcon slot="icon-only" icon={closeOutline}></IonIcon>
-                  </IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent className="ion-padding">
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: _.replace(postDetail, "_blank", ""),
-                }}
-              ></p>
-            </IonContent>
-          </IonModal>
-        </IonContent>
+              <IonButtons slot="end">
+                <IonButton onClick={closeDetail}>
+                  <IonIcon slot="icon-only" icon={closeOutline}></IonIcon>
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent className="ion-padding">
+            <p
+              dangerouslySetInnerHTML={{
+                __html: _.replace(postDetail, "_blank", ""),
+              }}
+            ></p>
+          </IonContent>
+        </IonModal>
       </IonContent>
     </IonPage>
   );
+};
+
+const styleSubSegment: CSSProperties = {
+  borderRadius: "5px",
+  margin: "10px auto",
+  width: "80%",
 };
 
 export default PostList;

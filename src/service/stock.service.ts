@@ -1,5 +1,5 @@
 import RequestResult from "../model/RequestResult";
-import { StockInfo } from "../model/StockInfo";
+import { StockModel } from "../model/StockModel";
 import { get } from "../util/fetch";
 
 class StockService {
@@ -16,7 +16,7 @@ class StockService {
     return StockService.instance;
   }
 
-  async getStockInfo(code: string): Promise<RequestResult<[StockInfo] | string>> {
+  async getStockInfo(code: string): Promise<RequestResult<[StockModel] | string>> {
     return await get("/stock/" + code + "/info");
   }
 }

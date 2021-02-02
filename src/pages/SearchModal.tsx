@@ -22,11 +22,12 @@ import { useHistory } from "react-router";
 import darkLogo from "../assets/google_dark.png";
 import lightLogo from "../assets/google_light.png";
 import { Dict } from "../model/Dict";
-import { SearchResult } from "../model/SearchResult";
+import { PageRoot } from "../model/PageRoot";
+import { EsDocument } from "../model/SearchResult";
 import dictService from "../service/dict.service";
 import { setErrorMessage } from "../slice/commonSlice";
-import { getPost, setSegment } from "../slice/postSlice";
-import { getSearchResult, setSearchResult, setSearchText } from "../slice/searchSlice";
+import { getSearchResults, setSegment } from "../slice/postSlice";
+import { getSearchTips, setSearchResult, setSearchText } from "../slice/searchSlice";
 
 const SearchModal = () => {
 
@@ -34,7 +35,7 @@ const SearchModal = () => {
     (state: RootStateOrAny) => state.search.text
   );
   
-  const searchResults : SearchResult[] = useSelector(
+  const searchResults : PageRoot<EsDocument> = useSelector(
     (state: RootStateOrAny) => state.search.results
   );
   
@@ -55,7 +56,7 @@ const SearchModal = () => {
       dispatch(setSearchResult([]));
     } else {
       dispatch(setSearchText(text));
-      dispatch(getSearchResult(text));
+      dispatch(getSearchTips(text));
     }
   };
 
@@ -64,7 +65,8 @@ const SearchModal = () => {
     if (type === "post") {
       history.goBack();
       dispatch(setSegment("search"));
-      dispatch(getPost("search", -1, -1, searchText))
+      dispatch(setSearchText(searchText));
+      dispatch(getSearchResults(searchText))
     }
   };
 
@@ -116,10 +118,10 @@ const SearchModal = () => {
           </IonItem>
         )}
         {
-          searchResults && searchResults.map((result) => 
+          searchResults.list && searchResults.list.map((result) => 
             (
-            <IonItem className="ion-no-margin" key={result.text}>
-              <IonLabel className="ion-no-margin">{result.text}</IonLabel>
+            <IonItem className="ion-no-margin" key={result.id}>
+              <IonLabel className="ion-no-margin">{result.title}</IonLabel>
             </IonItem>
             )
           )

@@ -27,7 +27,7 @@ ion-refresher {
     border-bottom: solid 5px #eaecf5;
 }
 #post .content {
-    font-size: 14px;
+    font-size: 18px;
     margin: 2px 0px 10px 0px;
 }
 #post .avatar {
@@ -40,7 +40,7 @@ ion-refresher {
     --min-height: 30px;
 }
 #post .username {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
 }
 #post .footer ion-col {
