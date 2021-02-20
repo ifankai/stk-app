@@ -17,18 +17,13 @@ import {
 import _ from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
+import { ItemProps } from "../model/ItemProps";
 import { EsDocument } from "../model/SearchResult";
 import { setPostDetail, setShowDetail } from "../slice/postSlice";
 import { getCodeWithPlace } from "../util/utils";
 import { tsFormat } from "../util/utils.date";
 
-interface PostListItemProps {
-  segment: string;
-  esDocument: EsDocument;
-  toggleFavorite: (esDocument: EsDocument) => void;
-}
-
-const PostListItem: React.FC<PostListItemProps> = ({
+const ItemPost: React.FC<ItemProps> = ({
   segment,
   esDocument,
   toggleFavorite,
@@ -134,4 +129,4 @@ const PostListItem: React.FC<PostListItemProps> = ({
   );
 };
 
-export default PostListItem;
+export default ItemPost;

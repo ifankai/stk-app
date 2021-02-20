@@ -29,7 +29,7 @@ import { setErrorMessage } from "../slice/commonSlice";
 import { getSearchResults, setSegment } from "../slice/postSlice";
 import { getSearchTips, setSearchResult, setSearchText } from "../slice/searchSlice";
 
-const SearchModal = () => {
+const Search = () => {
 
   const searchText = useSelector(
     (state: RootStateOrAny) => state.search.text
@@ -171,4 +171,4 @@ const searchBarStyle: CSSProperties = {
   paddingTop: "0px",
 };
 
-export default SearchModal;
+export default Search;

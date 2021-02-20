@@ -39,9 +39,9 @@ import {
   setShowDetail,
   setSubSegment
 } from "../slice/postSlice";
-import PostListItem from "./PostListItem";
+import ItemList from "./ItemList";
 
-const PostList: React.FC = () => {
+const Post: React.FC = () => {
   const dispatch = useDispatch();
 
   const segment = useSelector((state: RootStateOrAny) => state.post.segment);
@@ -295,7 +295,7 @@ const PostList: React.FC = () => {
               allPosts.list &&
               allPosts.list.map((esDocument: EsDocument) => {
                 return (
-                  <PostListItem
+                  <ItemList
                     segment={segment}
                     esDocument={esDocument}
                     toggleFavorite={(post) => toggleFavorite(esDocument)}
@@ -308,7 +308,7 @@ const PostList: React.FC = () => {
               favoritePosts.list &&
               favoritePosts.list.map((esDocument: EsDocument) => {
                 return (
-                  <PostListItem
+                  <ItemList
                     segment={segment}
                     esDocument={esDocument}
                     toggleFavorite={(post) => toggleFavorite(esDocument)}
@@ -322,7 +322,7 @@ const PostList: React.FC = () => {
               searchResults.list.map((esDocument: EsDocument) => {
                 if (esDocument.type === "post") {
                   return (
-                    <PostListItem
+                    <ItemList
                       segment={segment}
                       esDocument={esDocument}
                       toggleFavorite={(post) => toggleFavorite(esDocument)}
@@ -398,4 +398,5 @@ const styleSubSegment: CSSProperties = {
   width: "80%",
 };
 
-export default PostList;
+export default Post;
+

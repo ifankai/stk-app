@@ -14,8 +14,8 @@ import React from "react";
 import { RootStateOrAny, useDispatch, useSelector } from "react-redux";
 import { Redirect, Route } from "react-router-dom";
 import { setErrorShow } from "../slice/commonSlice";
-import PostList from "./PostList";
-import SearchModal from "./SearchModal";
+import Post from "./Post";
+import Search from "./Search";
 import Stock from "./Stock";
 import Tab2 from "./Tab2";
 import Tab3 from "./Tab3";
@@ -35,10 +35,10 @@ const StkApp: React.FC = () => {
       <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
-            <Route path="/post" component={PostList} exact={true} />
+            <Route path="/post" component={Post} exact={true} />
             <Route path="/tab2" component={Tab2} exact={true} />
             <Route path="/tab3" component={Tab3} />
-            <Route path="/search" component={SearchModal} />
+            <Route path="/search" component={Search} />
             <Route path="/stock/:code/:tab?" component={Stock} />
             <Route
               path="/"
