@@ -269,6 +269,9 @@ const Post: React.FC = () => {
               <IonSegmentButton value="all">
                 <IonLabel>综合</IonLabel>
               </IonSegmentButton>
+              <IonSegmentButton value="sort=time">
+                <IonLabel>按时间</IonLabel>
+              </IonSegmentButton>
               <IonSegmentButton value="type=post&subType=300">
                 <IonLabel>雪球公告</IonLabel>
               </IonSegmentButton>
