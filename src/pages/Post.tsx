@@ -36,7 +36,9 @@ import {
   setPostsBySegment,
   setSearchPage,
   setSegment,
-  setShowDetail,
+
+  setShowModal,
+
   setSubSegment
 } from "../slice/postSlice";
 import ItemList from "./ItemList";
@@ -73,11 +75,14 @@ const Post: React.FC = () => {
 
   const searchText = useSelector((state: RootStateOrAny) => state.search.text);
 
-  const showDetail = useSelector(
-    (state: RootStateOrAny) => state.post.showDetail
+  const showModal = useSelector(
+    (state: RootStateOrAny) => state.post.showModal
   );
-  const postDetail = useSelector(
-    (state: RootStateOrAny) => state.post.postDetail
+  const modalTitle = useSelector(
+    (state: RootStateOrAny) => state.post.modalTitle
+  );
+  const modalDetail = useSelector(
+    (state: RootStateOrAny) => state.post.modalDetail
   );
   const noMoreData = useSelector(
     (state: RootStateOrAny) => state.post.noMoreData
@@ -188,8 +193,8 @@ const Post: React.FC = () => {
     }
   };
 
-  const closeDetail = () => {
-    dispatch(setShowDetail(false));
+  const closeModal = () => {
+    dispatch(setShowModal(false));
     if (ionModalRef) ionModalRef.current?.dismiss();
   };
 
@@ -272,6 +277,9 @@ const Post: React.FC = () => {
               <IonSegmentButton value="sort=time">
                 <IonLabel>按时间</IonLabel>
               </IonSegmentButton>
+              <IonSegmentButton value="type=stock">
+                <IonLabel>仅股票</IonLabel>
+              </IonSegmentButton>
               <IonSegmentButton value="type=post&subType=300">
                 <IonLabel>雪球公告</IonLabel>
               </IonSegmentButton>
@@ -323,24 +331,14 @@ const Post: React.FC = () => {
             {segment === "search" &&
               searchResults.list &&
               searchResults.list.map((esDocument: EsDocument) => {
-                if (esDocument.type === "post") {
                   return (
                     <ItemList
                       segment={segment}
                       esDocument={esDocument}
-                      toggleFavorite={(post) => toggleFavorite(esDocument)}
-                      key={esDocument.post.id}
+                      toggleFavorite={() => toggleFavorite(esDocument)}
+                      key={esDocument.id}
                     />
-                  );
-                } else if (esDocument.type === "stock") {
-                  //sconst stock = { ...(result.data as Post), ...result };
-                  // return (
-                  //   <StockListItem
-                  //     stock={stock}
-                  //     key={stock.id}
-                  //   />
-                  // );
-                }
+                  );                
               })}
 
             {noMoreData && <div className="no-more-data">---已经到底---</div>}
@@ -362,21 +360,21 @@ const Post: React.FC = () => {
 
         <IonModal
           ref={ionModalRef}
-          isOpen={showDetail}
-          onDidDismiss={closeDetail}
+          isOpen={showModal}
+          onDidDismiss={closeModal}
         >
           <IonHeader>
             <IonToolbar className="ion-text-center">
               <IonButtons slot="start">
-                <IonButton onClick={closeDetail}>
+                <IonButton onClick={closeModal}>
                   <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
                 </IonButton>
               </IonButtons>
 
-              <IonLabel>帖子内容</IonLabel>
+              <IonLabel><div dangerouslySetInnerHTML={{__html: modalTitle}}></div></IonLabel>
 
               <IonButtons slot="end">
-                <IonButton onClick={closeDetail}>
+                <IonButton onClick={closeModal}>
                   <IonIcon slot="icon-only" icon={closeOutline}></IonIcon>
                 </IonButton>
               </IonButtons>
@@ -385,7 +383,7 @@ const Post: React.FC = () => {
           <IonContent className="ion-padding">
             <p
               dangerouslySetInnerHTML={{
-                __html: _.replace(postDetail, "_blank", ""),
+                __html: _.replace(modalDetail, "_blank", ""),
               }}
             ></p>
           </IonContent>

@@ -19,7 +19,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { ItemProps } from "../model/ItemProps";
 import { EsDocument } from "../model/SearchResult";
-import { setPostDetail, setShowDetail } from "../slice/postSlice";
+import { setModalDetail, setModalTitle, setShowModal } from "../slice/postSlice";
 import { getCodeWithPlace } from "../util/utils";
 import { tsFormat } from "../util/utils.date";
 
@@ -30,9 +30,10 @@ const ItemPost: React.FC<ItemProps> = ({
 }) => {
   const dispatch = useDispatch();
 
-  const popupText = (esDocument: EsDocument) => {
-    dispatch(setPostDetail(esDocument.post.content));
-    dispatch(setShowDetail(true));
+  const popupModal = (esDocument: EsDocument) => {
+    dispatch(setModalTitle("讨论内容"));
+    dispatch(setModalDetail(esDocument.post.content));
+    dispatch(setShowModal(true));
   };
 
   return (
@@ -118,7 +119,7 @@ const ItemPost: React.FC<ItemProps> = ({
                   雪球原文
                 </a>
               </IonCol>
-              <IonCol onClick={() => popupText(esDocument)}>
+              <IonCol onClick={() => popupModal(esDocument)}>
                 {esDocument.post?.content.length >= esDocument.post?.desc?.length + 40 && "帖子内容"}
               </IonCol>
             </IonRow>

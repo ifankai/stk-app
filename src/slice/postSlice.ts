@@ -16,8 +16,9 @@ export const postSlice = createSlice({
     favoritePosts: {} as PageRoot<EsDocument>,
     searchResults: {} as PageRoot<EsDocument>,
     searchPage: 1,
-    showDetail: false,
-    postDetail: "",
+    showModal: false,
+    modalTitle: "",
+    modalDetail: "",
     noMoreData: false,
   },
   reducers: {
@@ -71,11 +72,14 @@ export const postSlice = createSlice({
       }
     },
 
-    setShowDetail: (state, action) => {
-      state.showDetail = action.payload;
+    setShowModal: (state, action) => {
+      state.showModal = action.payload;
     },
-    setPostDetail: (state, action) => {
-      state.postDetail = action.payload;
+    setModalTitle: (state, action) => {
+      state.modalTitle = action.payload;
+    },
+    setModalDetail: (state, action) => {
+      state.modalDetail = action.payload;
     },
     setNoMoreData: (state, action) => {
       state.noMoreData = action.payload;
@@ -177,8 +181,9 @@ export const {
   setPostsBySegment,
   setPostsBySegmentAtStart,
   setPostsBySegmentAtEnd,
-  setShowDetail,
-  setPostDetail,
+  setShowModal,
+  setModalTitle,
+  setModalDetail,
   setNoMoreData,
 } = postSlice.actions;
 

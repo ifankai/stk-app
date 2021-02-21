@@ -15,7 +15,7 @@ const ItemList: React.FC<ItemProps> = ({
           segment={segment}
           esDocument={esDocument}
           toggleFavorite={() => toggleFavorite(esDocument)}
-          key={esDocument.post.id}
+          key={esDocument.id}
         />
       )}
       {esDocument.type === "stock" && (
@@ -23,7 +23,7 @@ const ItemList: React.FC<ItemProps> = ({
           segment={segment}
           esDocument={esDocument}
           toggleFavorite={() => toggleFavorite(esDocument)}
-          key={esDocument.post.id}
+          key={esDocument.id}
         />
       )}
     </>
