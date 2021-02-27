@@ -17,7 +17,7 @@ class StockService {
   }
 
   async getStockInfo(code: string): Promise<RequestResult<[StockModel] | string>> {
-    return await get("/stock/" + code + "/info");
+    return await get("/stock/info/" + code);
   }
 }
 const stockService = StockService.getInstance();
